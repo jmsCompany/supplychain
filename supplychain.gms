@@ -1,5 +1,4 @@
-$title  绿色供应链模型
-
+$title  green supply chain
 $onText
 
 绿色供应链模型：
@@ -169,7 +168,113 @@ $offdelim
 $ondelim
 $include data_ccc.csv
 $offdelim
-/;
+/
+
+ lb(m,w,k) 'minimium allowed transportation from plant m to warehouse w through mode k (m3)'
+ /
+$ondelim
+$include data_lb.csv
+$offdelim
+/
+
+ lbb(w,j,k) 'minimium allowed transportation from warehouse w to end-user j through mode k (m3)'
+ /
+$ondelim
+$include data_lbb.csv
+$offdelim
+/
+
+ lbbb(m,j,k) 'minimium allowed transportation from plant m to end-user j through mode k (m3)'
+ /
+$ondelim
+$include data_lbbb.csv
+$offdelim
+/
+
+
+
+ ub(m,w,k) 'Maximum allowed transportation from plant m to warehouse w through mode k (m3)'
+ /
+$ondelim
+$include data_ub.csv
+$offdelim
+/
+
+ ubb(w,j,k) 'Maximum allowed transportation from warehouse w to end-user j through mode k (m3)'
+ /
+$ondelim
+$include data_ubb.csv
+$offdelim
+/
+
+ ubbb(m,j,k) 'Maximum allowed transportation from plant m to end-user j through mode k (m3)'
+ /
+$ondelim
+$include data_ubbb.csv
+$offdelim
+/
+
+ em(i,m,h) 'estimated carbon emissions to produce a unit of product i with technology h in plant m (ton)'
+ /
+$ondelim
+$include data_em.csv
+$offdelim
+/
+
+ et(i,m,w,k) 'estimated carbon emissions for shipping a unit of product i from plant m to warehouse w through mode k (ton)'
+ /
+$ondelim
+$include data_et.csv
+$offdelim
+/
+
+
+ ett(i,w,j,k) 'estimated carbon emissions for shipping a unit of product i from warehouse w  to end-user j through mode k (ton)'
+ /
+$ondelim
+$include data_ett.csv
+$offdelim
+/
+
+
+
+ ettt(i,m,j,k) 'estimated carbon emissions for shipping a unit of product i from plant m to end-user j through mode k (ton)'
+ /
+$ondelim
+$include data_ettt.csv
+$offdelim
+/
+
+
+ l_t(m,h) ' Conversion Parameter of fixed costs of establishing plant m with technology h into annual equivalent'
+ /
+$ondelim
+$include data_lt.csv
+$offdelim
+/
+
+ ltt(w) ' Conversion Parameter of fixed costs of establishing warehouse w into annual equivalent'
+ /
+$ondelim
+$include data_ltt.csv
+$offdelim
+/
+
+ pc(i,j) 'penalty  cost for shortage of a unit of product i in end-user j'
+ /
+$ondelim
+$include data_pc.csv
+$offdelim
+/
+
+ ps(s) 'probability of scenario s'
+ /
+$ondelim
+$include data_ps.csv
+$offdelim
+/
+
+;
 
 display pai;
 display d;
@@ -188,3 +293,18 @@ display alpha;
 display c;
 display cc;
 display ccc;
+display lb;
+display lbb;
+display lbbb;
+display ub;
+display ubb;
+display ubbb;
+display em;
+display et;
+display ett;
+display ettt;
+
+display l_t;
+display ltt;
+display pc;
+display ps;

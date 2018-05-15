@@ -1,0 +1,707 @@
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:16:06 Page 1
+green supply chain
+C o m p i l a t i o n
+
+
+       
+      绿色供应链模型：
+      1）五个最终消费者（customer）：New South Wales, Victoria, Queensland, South Australia and Western Australia
+      2）五个可能创建的工厂 (plant)：New South Wales, Victoria, Queensland, South Australia and Western Australia
+      3）五个可能的仓库 (warehouse)：New South Wales, Victoria, Queensland, South Australia and Western Australia
+      4）三个供应商 (supplier)：Queensland, South Australia and Western Australia
+      5) 三个产品类型 (products type)：product1,product2,product3 
+      6）工厂容量类别（capacity）：small, medium , large 
+      7) 仓库(capacity)类别： small , large
+      8) 三类生产技术：greener technology：  low, medium, high
+      9) 预算( budget constraint ): $30 000 000
+      10) 24种场景(scenarios) : 对三类不同产品的需求估计（乐观、悲观 “optimistic” or “pessimistic”) 2*2*2=8,
+                              碳价（carbon price： low, medium and high.） 3*8=24
+                              *s1   代表product1乐观，product2乐观，product3乐观， 碳价高
+                              *s2   代表product1乐观，product2乐观，product3乐观， 碳价正常
+                              *s3   代表product1乐观，product2乐观，product3乐观， 碳价底
+                              *s4   代表product1乐观，product2乐观，product3悲观， 碳价高 
+                              *s5   代表product1乐观，product2乐观，product3悲观， 碳价正常 
+                              *s6   代表product1乐观，product2乐观，product3悲观， 碳价底 
+                              *s7   代表product1乐观，product2悲观，product3乐观， 碳价高
+                              *s8   代表product1乐观，product2悲观，product3乐观， 碳价正常
+                              *s9   代表product1乐观，product2悲观，product3乐观， 碳价底 
+                              *s10  代表product1乐观，product2悲观，product3悲观， 碳价高
+                              *s11  代表product1乐观，product2悲观，product3悲观， 碳价正常
+                              *s12  代表product1乐观，product2悲观，product3悲观， 碳价底 
+                              *s13  代表product1悲观，product2乐观，product3乐观， 碳价高
+                              *s14  代表product1悲观，product2乐观，product3乐观， 碳价正常
+                              *s15  代表product1悲观，product2乐观，product3乐观， 碳价底 
+                              *s16  代表product1悲观，product2乐观，product3悲观， 碳价高 
+                              *s17  代表product1悲观，product2乐观，product3悲观， 碳价正常 
+                              *s18  代表product1悲观，product2乐观，product3悲观， 碳价底 
+                              *s19  代表product1悲观，product2悲观，product3乐观， 碳价高
+                              *s20  代表product1悲观，product2悲观，product3乐观， 碳价正常
+                              *s21  代表product1悲观，product2悲观，product3乐观， 碳价底 
+                              *s22  代表product1悲观，product2悲观，product3悲观， 碳价高
+                              *s23  代表product1悲观，product2悲观，product3悲观， 碳价正常
+                              *s24  代表product1悲观，product2悲观，product3悲观， 碳价底
+      11) 三种运输方案（transport mode）      
+      12) 原材料 raw material r                   
+  43   
+  44  Set
+  45   
+  46     i 'product type'          / product1,  product2,  product3 /
+  47     r 'raw material'          / r1, r2, r3 /
+  48     n 'supplier'              / Queensland, South_Australia, Western_Australia /
+  49     m 'plant'                 / New_South_Wales,  Victoria,  Queensland, South_Australia, Western_Australia /
+  50     h 'technology'            / green, semi_green, pollutant /
+  51     u 'plant capacity'        / small, medium, large /
+  52     w 'warehouse'             / New_South_Wales,  Victoria,  Queensland, South_Australia, Western_Australia /
+  53     v 'warehouse capacity'    / small, large /
+  54     k 'transport mode'        / water_carriage, train, airplane /
+  55     j 'customer'              / New_South_Wales,  Victoria,  Queensland, South_Australia, Western_Australia /
+  56     s 'scenario'              / s1*s24 /;
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:16:06 Page 2
+green supply chain
+C o m p i l a t i o n
+
+
+  57   
+  58   
+  59  Scalar b   'total budget'                                            / 30000000 /
+  60         cap 'Maximum overall allowed carbon emissions (ton)'          / 10000    /;
+  61   
+  62  Parameter
+  63     pai(s) 'Market price of carbon credit in scenario s'
+  64  /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_pai.csv
+  67  s1,600
+  68  s2,300
+  69  s3,0
+  70  s4,600
+  71  s5,300
+  72  s6,0
+  73  s7,600
+  74  s8,300
+  75  s9,0
+  76  s10,600
+  77  s11,300
+  78  s12,0
+  79  s13,600
+  80  s14,300
+  81  s15,0
+  82  s16,600
+  83  s17,300
+  84  s18,0
+  85  s19,600
+  86  s20,300
+  87  s21,0
+  88  s22,600
+  89  s23,300
+  90  s24,0
+  92  /
+  93   
+  94    d(i,j,s) 'Forecasted demand for product i in end-user j in scenario s'
+  95  /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_d.csv
+  98  product1,New_South_Wales,s1,32
+  99  product1,New_South_Wales,s2,46
+ 101  /
+ 102   
+ 103   f(m,h,u) 'Fixed costs of establishing  plant m with technology h and capacity u'
+ 104   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_f.csv
+ 107  New_South_Wales,green,medium,1200
+ 108  New_South_Wales,green,small,600
+ 110  /
+ 111   
+ 112    ff(w,v) 'Fixed costs of establishing  warehouse with capacity u'
+ 113   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_ff.csv
+ 116  Victoria,large,1200
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:16:06 Page 3
+green supply chain
+C o m p i l a t i o n
+
+
+ 117  Queensland,small,600
+ 119  /
+ 120    fff(n) 'Fixed costs of selecting supplier n'
+ 121   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_fff.csv
+ 124  Queensland,1200
+ 125  South_Australia,600
+ 126  Western_Australia,200
+ 128  /
+ 129   
+ 130    cm(i,m,h) 'cost of manufacturing a unit of product i with technology h in plant m'
+ 131   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_cm.csv
+ 134  product1,New_South_Wales,green,1200
+ 135  product1,New_South_Wales,semi_green,800
+ 136  product1,New_South_Wales,pollutant,200
+ 137   
+ 138   
+ 140  /
+ 141   
+ 142    cs(r,n,m) 'cost of purchasing a unit of raw material r from supplier n for processing at plant m'
+ 143   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_cs.csv
+ 146  r1,Queensland,New_South_Wales,0.45
+ 147   
+ 148   
+ 150  /
+ 151   
+ 152    ct(i,m,w,k) 'Per unit cost of shipment of product i from plant m to warehouse w through transport mode k'
+ 153   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_ct.csv
+ 156  product1,New_South_Wales,Victoria,water_carriage,1.8
+ 157   
+ 158   
+ 160  /
+ 161    ctt(i,w,j,k) 'Per unit cost of shipment of product i from warehouse w to end-user j through transport mode k'
+ 162   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_ctt.csv
+ 165  product1,Victoria,New_South_Wales,water_carriage,0.8
+ 166   
+ 167   
+ 169  /
+ 170   
+ 171   cttt(i,m,j,k) 'Per unit cost of shipment of product i from plant m to end-user j through transport mode k'
+ 172   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_cttt.csv
+ 175  product1,New_South_Wales,New_South_Wales,water_carriage,13
+ 176   
+ 177   
+ 179  /
+ 180   
+ 181   p(i,h) 'processing time of a unit of product i with technology h'
+ 182   /
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:16:06 Page 4
+green supply chain
+C o m p i l a t i o n
+
+
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_p.csv
+ 185  product1,green,8
+ 186  product1,semi_green,4
+ 187   
+ 188   
+ 190  /
+ 191   
+ 192   pp(i) 'volume of a unit of product i (m3)'
+ 193   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_pp.csv
+ 196  product1,6
+ 197  product2,2
+ 198   
+ 199   
+ 201  /
+ 202   
+ 203   alpha(r,i) 'amount of raw material r required in production of a unit of product i (kg)'
+ 204   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_alpha.csv
+ 207  r1,product1,4
+ 208  r2,product1,12
+ 209   
+ 210   
+ 212  /
+ 213   
+ 214   c(m,h,u) 'production capacity (time) in plant m with technology h and capacity u (h)'
+ 215   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_c.csv
+ 218  New_South_Wales,green,small,4
+ 219  New_South_Wales,semi_green,small,12
+ 220   
+ 221   
+ 223  /
+ 224   
+ 225   cc(w,v) 'holding capacity in warehouse w with capacity level v (m3)'
+ 226   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_cc.csv
+ 229  New_South_Wales,small,4
+ 230  New_South_Wales,large,12
+ 231   
+ 232   
+ 234  /
+ 235   
+ 236   ccc(r,n) 'raw material capacity for raw material r in supplier n (kg)'
+ 237   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_ccc.csv
+ 240  r1,Queensland,4
+ 241  r1,South_Australia,12
+ 242   
+ 243   
+ 245  /
+ 246   
+ 247   lb(m,w,k) 'minimium allowed transportation from plant m to warehouse w through mode k (m3)'
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:16:06 Page 5
+green supply chain
+C o m p i l a t i o n
+
+
+ 248   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_lb.csv
+ 251  Victoria,Queensland,water_carriage,5
+ 252   
+ 254  /
+ 255   
+ 256   lbb(w,j,k) 'minimium allowed transportation from warehouse w to end-user j through mode k (m3)'
+ 257   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_lbb.csv
+ 260  Victoria,Queensland,water_carriage,5
+ 261   
+ 262   
+ 264  /
+ 265   
+ 266   lbbb(m,j,k) 'minimium allowed transportation from plant m to end-user j through mode k (m3)'
+ 267   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_lbbb.csv
+ 270  Victoria,Queensland,water_carriage,5
+ 271   
+ 272   
+ 274  /
+ 275   
+ 276   
+ 277   
+ 278   ub(m,w,k) 'Maximum allowed transportation from plant m to warehouse w through mode k (m3)'
+ 279   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_ub.csv
+ 282  Victoria,Queensland,water_carriage,15
+ 283   
+ 285  /
+ 286   
+ 287   ubb(w,j,k) 'Maximum allowed transportation from warehouse w to end-user j through mode k (m3)'
+ 288   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_ubb.csv
+ 291  Victoria,Queensland,water_carriage,15
+ 292   
+ 293   
+ 295  /
+ 296   
+ 297   ubbb(m,j,k) 'Maximum allowed transportation from plant m to end-user j through mode k (m3)'
+ 298   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_ubbb.csv
+ 301  Victoria,Queensland,water_carriage,15
+ 302   
+ 303   
+ 305  /
+ 306   
+ 307   em(i,m,h) 'estimated carbon emissions to produce a unit of product i with technology h in plant m (ton)'
+ 308   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_em.csv
+ 311  product1,New_South_Wales,green,5
+ 312   
+ 313   
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:16:06 Page 6
+green supply chain
+C o m p i l a t i o n
+
+
+ 315  /
+ 316   
+ 317   et(i,m,w,k) 'estimated carbon emissions for shipping a unit of product i from plant m to warehouse w through mode k (ton)'
+ 318   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_et.csv
+ 321  product1,New_South_Wales,Victoria,water_carriage,8
+ 322   
+ 324  /
+ 325   
+ 326   
+ 327   ett(i,w,j,k) 'estimated carbon emissions for shipping a unit of product i from warehouse w  to end-user j through mode k (ton)'
+ 328   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_ett.csv
+ 331  product1,New_South_Wales,Victoria,water_carriage,8
+ 332   
+ 334  /
+ 335   
+ 336   
+ 337   
+ 338   ettt(i,m,j,k) 'estimated carbon emissions for shipping a unit of product i from plant m to end-user j through mode k (ton)'
+ 339   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_ettt.csv
+ 342  product1,New_South_Wales,Victoria,water_carriage,8
+ 343   
+ 345  /
+ 346   
+ 347   
+ 348   l_t(m,h) ' Conversion Parameter of fixed costs of establishing plant m with technology h into annual equivalent'
+ 349   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_lt.csv
+ 352  New_South_Wales,green,10
+ 353   
+ 355  /
+ 356   
+ 357   ltt(w) ' Conversion Parameter of fixed costs of establishing warehouse w into annual equivalent'
+ 358   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_ltt.csv
+ 361  Victoria,8
+ 362   
+ 364  /
+ 365   
+ 366   pc(i,j) 'penalty  cost for shortage of a unit of product i in end-user j'
+ 367   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_pc.csv
+ 370  product1,New_South_Wales,8
+ 371   
+ 373  /
+ 374   
+ 375   ps(s) 'probability of scenario s'
+ 376   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_ps.csv
+ 379  s1,0.0417
+ 380  s2,0.0417
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:16:06 Page 7
+green supply chain
+C o m p i l a t i o n
+
+
+ 381  s3,0.0417
+ 382  s4,0.0417
+ 383  s5,0.0417
+ 384  s6,0.0417
+ 385  s7,0.0417
+ 386  s8,0.0417
+ 387  s9,0.0417
+ 388  s10,0.0417
+ 389  s11,0.0417
+ 390  s12,0.0417
+ 391  s13,0.0417
+ 392  s14,0.0417
+ 393  s15,0.0417
+ 394  s16,0.0417
+ 395  s17,0.0417
+ 396  s18,0.0417
+ 397  s19,0.0417
+ 398  s20,0.0417
+ 399  s21,0.0417
+ 400  s22,0.0417
+ 401  s23,0.0417
+ 402  s24,0.0409
+ 403   
+ 405  /
+ 406   
+ 407  ;
+ 408   
+ 409  display pai;
+ 410  display d;
+ 411  display f;
+ 412  display ff;
+ 413  display fff;
+ 414  display cm;
+ 415  display cs;
+ 416  display ct;
+ 417  display ctt;
+ 418  display cttt;
+ 419   
+ 420  display p;
+ 421  display pp;
+ 422  display alpha;
+ 423  display c;
+ 424  display cc;
+ 425  display ccc;
+ 426  display lb;
+ 427  display lbb;
+ 428  display lbbb;
+ 429  display ub;
+ 430  display ubb;
+ 431  display ubbb;
+ 432  display em;
+ 433  display et;
+ 434  display ett;
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:16:06 Page 8
+green supply chain
+C o m p i l a t i o n
+
+
+ 435  display ettt;
+ 436   
+ 437  display l_t;
+ 438  display ltt;
+ 439  display pc;
+ 440  display ps;
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:16:06 Page 9
+green supply chain
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /Users/renhongtao/gamsmodel/supply_chain/supplychain.gms
+     2       66 INCLUDE        1      66  ./Users/renhongtao/gamsmodel/supply_chain/data_pai.csv
+     3       97 INCLUDE        1      73  ./Users/renhongtao/gamsmodel/supply_chain/data_d.csv
+     4      106 INCLUDE        1      80  ./Users/renhongtao/gamsmodel/supply_chain/data_f.csv
+     5      115 INCLUDE        1      87  ./Users/renhongtao/gamsmodel/supply_chain/data_ff.csv
+     6      123 INCLUDE        1      93  ./Users/renhongtao/gamsmodel/supply_chain/data_fff.csv
+     7      133 INCLUDE        1     100  ./Users/renhongtao/gamsmodel/supply_chain/data_cm.csv
+     8      145 INCLUDE        1     107  ./Users/renhongtao/gamsmodel/supply_chain/data_cs.csv
+     9      155 INCLUDE        1     114  ./Users/renhongtao/gamsmodel/supply_chain/data_ct.csv
+    10      164 INCLUDE        1     120  ./Users/renhongtao/gamsmodel/supply_chain/data_ctt.csv
+    11      174 INCLUDE        1     127  ./Users/renhongtao/gamsmodel/supply_chain/data_cttt.csv
+    12      184 INCLUDE        1     134  ./Users/renhongtao/gamsmodel/supply_chain/data_p.csv
+    13      195 INCLUDE        1     141  ./Users/renhongtao/gamsmodel/supply_chain/data_pp.csv
+    14      206 INCLUDE        1     148  ./Users/renhongtao/gamsmodel/supply_chain/data_alpha.csv
+    15      217 INCLUDE        1     155  ./Users/renhongtao/gamsmodel/supply_chain/data_c.csv
+    16      228 INCLUDE        1     162  ./Users/renhongtao/gamsmodel/supply_chain/data_cc.csv
+    17      239 INCLUDE        1     169  ./Users/renhongtao/gamsmodel/supply_chain/data_ccc.csv
+    18      250 INCLUDE        1     176  ./Users/renhongtao/gamsmodel/supply_chain/data_lb.csv
+    19      259 INCLUDE        1     183  ./Users/renhongtao/gamsmodel/supply_chain/data_lbb.csv
+    20      269 INCLUDE        1     190  ./Users/renhongtao/gamsmodel/supply_chain/data_lbbb.csv
+    21      281 INCLUDE        1     199  ./Users/renhongtao/gamsmodel/supply_chain/data_ub.csv
+    22      290 INCLUDE        1     206  ./Users/renhongtao/gamsmodel/supply_chain/data_ubb.csv
+    23      300 INCLUDE        1     213  ./Users/renhongtao/gamsmodel/supply_chain/data_ubbb.csv
+    24      310 INCLUDE        1     220  ./Users/renhongtao/gamsmodel/supply_chain/data_em.csv
+    25      320 INCLUDE        1     227  ./Users/renhongtao/gamsmodel/supply_chain/data_et.csv
+    26      330 INCLUDE        1     235  ./Users/renhongtao/gamsmodel/supply_chain/data_ett.csv
+    27      341 INCLUDE        1     244  ./Users/renhongtao/gamsmodel/supply_chain/data_ettt.csv
+    28      351 INCLUDE        1     252  ./Users/renhongtao/gamsmodel/supply_chain/data_lt.csv
+    29      360 INCLUDE        1     259  ./Users/renhongtao/gamsmodel/supply_chain/data_ltt.csv
+    30      369 INCLUDE        1     266  ./Users/renhongtao/gamsmodel/supply_chain/data_pc.csv
+    31      378 INCLUDE        1     273  ./Users/renhongtao/gamsmodel/supply_chain/data_ps.csv
+
+
+COMPILATION TIME     =        0.015 SECONDS      3 MB  24.9.2 r64480 DEX-DEG
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 09:16:06 Page 10
+green supply chain
+E x e c u t i o n
+
+
+----    409 PARAMETER pai  Market price of carbon credit in scenario s
+
+s1  600.000,    s2  300.000,    s4  600.000,    s5  300.000,    s7  600.000,    s8  300.000,    s10 600.000,    s11 300.000,    s13 600.000,    s14 300.000,    s16 600.000,    s17 300.000,    s19 600.000,    s20 300.000,    s22 600.000,    s23 300.000
+
+
+----    410 PARAMETER d  Forecasted demand for product i in end-user j in scenario s
+
+                                  s1          s2
+
+product1.New_South_Wales      32.000      46.000
+
+
+----    411 PARAMETER f  Fixed costs of establishing  plant m with technology h and capacity u
+
+                            small      medium
+
+New_South_Wales.green     600.000    1200.000
+
+
+----    412 PARAMETER ff  Fixed costs of establishing  warehouse with capacity u
+
+                 small       large
+
+Queensland     600.000
+Victoria                  1200.000
+
+
+----    413 PARAMETER fff  Fixed costs of selecting supplier n
+
+Queensland        1200.000,    South_Australia    600.000,    Western_Australia  200.000
+
+
+----    414 PARAMETER cm  cost of manufacturing a unit of product i with technology h in plant m
+
+                               green  semi_green   pollutant
+
+product1.New_South_Wales    1200.000     800.000     200.000
+
+
+----    415 PARAMETER cs  cost of purchasing a unit of raw material r from supplier n for processing at plant m
+
+               New_South~
+
+r1.Queensland       0.450
+
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 09:16:06 Page 11
+green supply chain
+E x e c u t i o n
+
+
+----    416 PARAMETER ct  Per unit cost of shipment of product i from plant m to warehouse w through transport mode k
+
+INDEX 1 = product1
+
+                          water_car~
+
+New_South_Wales.Victoria       1.800
+
+
+----    417 PARAMETER ctt  Per unit cost of shipment of product i from warehouse w to end-user j through transport mode k
+
+INDEX 1 = product1
+
+                          water_car~
+
+Victoria.New_South_Wales       0.800
+
+
+----    418 PARAMETER cttt  Per unit cost of shipment of product i from plant m to end-user j through transport mode k
+
+INDEX 1 = product1
+
+                                 water_car~
+
+New_South_Wales.New_South_Wales      13.000
+
+
+----    420 PARAMETER p  processing time of a unit of product i with technology h
+
+               green  semi_green
+
+product1       8.000       4.000
+
+
+----    421 PARAMETER pp  volume of a unit of product i (m3)
+
+product1 6.000,    product2 2.000
+
+
+----    422 PARAMETER alpha  amount of raw material r required in production of a unit of product i (kg)
+
+      product1
+
+r1       4.000
+r2      12.000
+
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 09:16:06 Page 12
+green supply chain
+E x e c u t i o n
+
+
+----    423 PARAMETER c  production capacity (time) in plant m with technology h and capacity u (h)
+
+                                 small
+
+New_South_Wales.green            4.000
+New_South_Wales.semi_green      12.000
+
+
+----    424 PARAMETER cc  holding capacity in warehouse w with capacity level v (m3)
+
+                      small       large
+
+New_South_Wales       4.000      12.000
+
+
+----    425 PARAMETER ccc  raw material capacity for raw material r in supplier n (kg)
+
+    Queensland  South_Aus~
+
+r1       4.000      12.000
+
+
+----    426 PARAMETER lb  minimium allowed transportation from plant m to warehouse w through mode k (m3)
+
+                     water_car~
+
+Victoria.Queensland       5.000
+
+
+----    427 PARAMETER lbb  minimium allowed transportation from warehouse w to end-user j through mode k (m3)
+
+                     water_car~
+
+Victoria.Queensland       5.000
+
+
+----    428 PARAMETER lbbb  minimium allowed transportation from plant m to end-user j through mode k (m3)
+
+                     water_car~
+
+Victoria.Queensland       5.000
+
+
+----    429 PARAMETER ub  Maximum allowed transportation from plant m to warehouse w through mode k (m3)
+
+                     water_car~
+
+Victoria.Queensland      15.000
+
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 09:16:06 Page 13
+green supply chain
+E x e c u t i o n
+
+
+----    430 PARAMETER ubb  Maximum allowed transportation from warehouse w to end-user j through mode k (m3)
+
+                     water_car~
+
+Victoria.Queensland      15.000
+
+
+----    431 PARAMETER ubbb  Maximum allowed transportation from plant m to end-user j through mode k (m3)
+
+                     water_car~
+
+Victoria.Queensland      15.000
+
+
+----    432 PARAMETER em  estimated carbon emissions to produce a unit of product i with technology h in plant m (ton)
+
+                               green
+
+product1.New_South_Wales       5.000
+
+
+----    433 PARAMETER et  estimated carbon emissions for shipping a unit of product i from plant m to warehouse w through mode k (ton)
+
+INDEX 1 = product1
+
+                          water_car~
+
+New_South_Wales.Victoria       8.000
+
+
+----    434 PARAMETER ett  estimated carbon emissions for shipping a unit of product i from warehouse w  to end-user j through mode k (ton)
+
+INDEX 1 = product1
+
+                          water_car~
+
+New_South_Wales.Victoria       8.000
+
+
+----    435 PARAMETER ettt  estimated carbon emissions for shipping a unit of product i from plant m to end-user j through mode k (ton)
+
+INDEX 1 = product1
+
+                          water_car~
+
+New_South_Wales.Victoria       8.000
+
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 09:16:06 Page 14
+green supply chain
+E x e c u t i o n
+
+
+----    437 PARAMETER l_t   Conversion Parameter of fixed costs of establishing plant m with technology h into annual equivalent
+
+                      green
+
+New_South_Wales      10.000
+
+
+----    438 PARAMETER ltt   Conversion Parameter of fixed costs of establishing warehouse w into annual equivalent
+
+Victoria 8.000
+
+
+----    439 PARAMETER pc  penalty  cost for shortage of a unit of product i in end-user j
+
+          New_South~
+
+product1       8.000
+
+
+----    440 PARAMETER ps  probability of scenario s
+
+s1  0.042,    s2  0.042,    s3  0.042,    s4  0.042,    s5  0.042,    s6  0.042,    s7  0.042,    s8  0.042,    s9  0.042,    s10 0.042,    s11 0.042,    s12 0.042,    s13 0.042,    s14 0.042,    s15 0.042,    s16 0.042,    s17 0.042,    s18 0.042
+s19 0.042,    s20 0.042,    s21 0.042,    s22 0.042,    s23 0.042,    s24 0.041
+
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.9.2 r64480 DEX-DEG
+
+
+USER: GAMS Development Corporation, USA              G871201/0000CA-ANY
+      Free Demo, +1 202-342-0180, support@gams.com, www.gams.com DC0000
+
+
+**** FILE SUMMARY
+
+Input      /Users/renhongtao/gamsmodel/supply_chain/supplychain.gms
+Output     /Users/renhongtao/gamsmodel/supply_chain/supplychain.lst
