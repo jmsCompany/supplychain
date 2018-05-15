@@ -1,4 +1,4 @@
-$title  green supply chain
+$title  green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
 $onText
 
 绿色供应链模型：
@@ -299,8 +299,6 @@ VR
 VL
 VLL
 VLLL
-VO
-VE
 ;
 
 
@@ -317,6 +315,7 @@ VG(m,w,k,s) '1 if there is a flow between plant m and warehouse w through mode k
 VGG(w,j,k,s) '1 if there is a flow between warehouse w and end-user j through mode k in scenario s, 0 otherwise'
 
 VGGG(m,j,k,s) '1 if there is a flow between palnt m and end-user j through mode k in scenario s, 0 otherwise'
+
 ;
 
 variable
@@ -331,45 +330,91 @@ cost 'objective function'
 
 row1 '(8) enforces the budget limitation for the establishment of manufacturing plants and warehouses'
 
+row2(m) '(9) ensure that no more than one facility can be established in each candidate location'
+
+row3(w) '(10) ensure that no more than one facility can be established in each candidate location'
+
+row4(s) '(11) carbon credit limitation at each scenario by substracting the production and transport emissions from regular cap.'
+
+row5(m,h,s) '(12) enforce the capacity limitation of the manufacturing plants'
+
+row6(w,s) '(13) enforce the capacity limitation of the warehouse'
+
+row7(r,n,s) '(14) formulates the limitation in raw material provision by suppliers'
+
+row8(r,m,s) '(15) guarantees the fulfillment of raw material requirement in the manufacturing plants'
+
+row9(i,m,s) '(16) enforce the flow balance in manufacturing plant'
+
+row10(i,w,s) '(17) enforce the flow balance in warehouse'
+
+row11(i,j,s) '(18) enforce the flow balance in end-user'
+
+row12(m,w,k,s) '(19)  impose the product flow limitations between different supply chain participants'
+
+row13(m,w,k,s) '(19)  impose the product flow limitations between different supply chain participants1'
+
+row14(w,j,k,s) '(20) mpose the product flow limitations between different supply chain participants'
+
+row15(w,j,k,s) '(20) mpose the product flow limitations between different supply chain participants1'
+
+row16(m,j,k,s) '(21) mpose the product flow limitations between different supply chain participants'
+
+row17(m,j,k,s) '(21) mpose the product flow limitations between different supply chain participants1'
+
 ;
 
-cost .. z =e= sum((m,h,u),l_t(m,h)*f(m,h,u)*VF(m,h,u));
+cost .. z =e=   sum((m,h,u),l_t(m,h)*f(m,h,u)*VF(m,h,u))
+              + sum((w,v),ltt(w)*ff(w,v)*VFF(w,v))
+              + sum(n,fff(n)*VFFF(n))
+              + sum(s,ps(s)*sum((i,m,w,k),ct(i,m,w,k)*VL(i,m,w,k,s)))
+              + sum(s,ps(s)*sum((i,w,j,k),ctt(i,w,j,k)*VLL(i,w,j,k,s)))
+              + sum(s,ps(s)*sum((i,m,j,k),cttt(i,m,j,k)*VLLL(i,m,j,k,s)))
+              + sum(s,ps(s)*sum((i,m,h),cm(i,m,h)*VQ(i,m,h,s)))
+              + sum(s,ps(s)*sum((r,n,m),cs(r,n,m)*VR(r,n,m,s)))
+              + sum(s,ps(s)*sum((i,j),pc(i,j)*VO(i,j,s)))
+              + sum(s,ps(s)*pai(s)*VE(s))
+              ;
 
 row1 .. sum((m,h,u),f(m,h,u)*VF(m,h,u)) + sum((w,v),ff(w,v)*VFF(w,v)) =l= b;
+
+row2(m) .. sum((h,u),VF(m,h,u)) =l= 1;
+
+row3(w) .. sum(v,VFF(w,v)) =l= 1;
+
+row4(s) .. sum((i,m,w,k),et(i,m,w,k)*VL(i,m,w,k,s)) 
+           + sum((i,w,j,k),ett(i,w,j,k)*VLL(i,w,j,k,s))
+           + sum((i,m,j,k),ettt(i,m,j,k)*VLLL(i,m,j,k,s))
+           + sum((i,m,h),em(i,m,h)*VQ(i,m,h,s))
+           -cap =e= VE(s);
+
+row5(m,h,s) .. sum(i,p(i,h)*VQ(i,m,h,s)) =l= sum(u,c(m,h,u)*VF(m,h,u));
+
+row6(w,s) .. sum((i,m,k),pp(i)*VL(i,m,w,k,s)) =l= sum(v,cc(w,v)*VFF(w,v)); 
+
+row7(r,n,s) .. sum(m,VR(r,n,m,s)) =l= ccc(r,n)*VFFF(n);
+
+row8(r,m,s) .. sum((i,h),alpha(r,i)*VQ(i,m,h,s)) =e= sum(n, VR(r,n,m,s));
+
+row9(i,m,s) .. sum(h, VQ(i,m,h,s))  =e= sum((w,k),VL(i,m,w,k,s)) + sum((j,k),VLLL(i,m,j,k,s));
+
+row10(i,w,s) .. sum((m,k),VL(i,m,w,k,s)) =e= sum((j,k),VLL(i,w,j,k,s));
+
+row11(i,j,s) .. sum((w,k),VLL(i,w,j,k,s)) + sum((m,k),VLLL(i,m,j,k,s)) + VO(i,j,s) =e= d(i,j,s);
+
+row12(m,w,k,s) .. lb(m,w,k)*VG(m,w,k,s) =l= sum(i,pp(i)*VL(i,m,w,k,s));
+
+row13(m,w,k,s) ..   sum(i,pp(i)*VL(i,m,w,k,s)) =l= ub(m,w,k) * VG(m,w,k,s);
+
+row14(w,j,k,s) .. lbb(w,j,k)*VGG(w,j,k,s) =l= sum(i,pp(i)*VLL(i,w,j,k,s));
+
+row15(w,j,k,s) ..  sum(i,pp(i)*VLL(i,w,j,k,s)) =l= ubb(w,j,k)*VGG(w,j,k,s);
+
+row16(m,j,k,s) ..  lbbb(m,j,k)*VGGG(m,j,k,s) =l= sum(i,pp(i)*VLLL(i,m,j,k,s));
+
+row17(m,j,k,s) ..  sum(i,pp(i)*VLLL(i,m,j,k,s)) =l= ubbb(m,j,k)*VGGG(m,j,k,s);
+
 
 Model supplychain / all /;
 
 solve supplychain using MIP minimizing z;
-
-
-
-display pai;
-display d;
-display f;
-display ff;
-display fff;
-display cm;
-display cs;
-display ct;
-display ctt;
-display cttt;
-display p;
-display pp;
-display alpha;
-display c;
-display cc;
-display ccc;
-display lb;
-display lbb;
-display lbbb;
-display ub;
-display ubb;
-display ubbb;
-display em;
-display et;
-display ett;
-display ettt;
-display l_t;
-display ltt;
-display pc;
-display ps;
