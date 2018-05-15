@@ -273,6 +273,44 @@ $ondelim
 $include data_ps.csv
 $offdelim
 /
+;
+
+positive variable
+
+VQ(i,m,h,s) 'amount of product i produced in plant m with technology h in scenario s'
+
+VR(r,n,m,s) 'amount of raw material r shipped from supplier n to plant m in scenario s'
+
+VL(i,m,w,k,s) 'amount of product i shipped from plant m to warehouse w through technology k in scenario s'
+
+VLL(i,w,j,k,s) 'amount of product i shipped from warehouse w through technology k in scenario s'
+
+VLLL(i,m,j,k,s) 'amount of product i shipped from plant m to end-user j through technology k in scenario s'
+
+VO(i,j,s) 'amount of shortage for product i in end-user j in scenario s'
+
+VE(s) 'Net number of carbon credits traded in scenario s'
+
+;
+
+variable
+
+VF(m,h,u) 'binary var, 1 if manufacturing plant m with technology h anf capacity u is estimated 0 otherwise'
+
+VFF(w,v) 'binary var, 1 if warehouse w with capacity level v is estimated, 0 otherwise'
+
+VFFF(n) 'binary var, 1 if supplier n is selected, 0 otherwise'
+
+VG(m,w,k,s) 'binary var, 1 if there is a flow between plant m and warehouse w through mode k in scenario s , 0 otherwise'
+
+VGG(w,j,k,s) 'binary var, 1 if there is a flow between warehouse w and end-user j through mode k in scenario s, 0 otherwise'
+
+VGGG(m,j,k,s) 'binary var, 1 if there is a flow between palnt m and end-user j through mode k in scenario s, 0 otherwise'
+;
+
+variable
+
+z 'object function'
 
 ;
 
@@ -286,7 +324,6 @@ display cs;
 display ct;
 display ctt;
 display cttt;
-
 display p;
 display pp;
 display alpha;
@@ -303,7 +340,6 @@ display em;
 display et;
 display ett;
 display ettt;
-
 display l_t;
 display ltt;
 display pc;
