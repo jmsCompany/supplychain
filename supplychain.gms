@@ -275,7 +275,7 @@ $offdelim
 /
 ;
 
-positive variable
+variable
 
 VQ(i,m,h,s) 'amount of product i produced in plant m with technology h in scenario s'
 
@@ -293,26 +293,55 @@ VE(s) 'Net number of carbon credits traded in scenario s'
 
 ;
 
-variable
+positive variable
+VQ
+VR
+VL
+VLL
+VLLL
+VO
+VE
+;
 
-VF(m,h,u) 'binary var, 1 if manufacturing plant m with technology h anf capacity u is estimated 0 otherwise'
 
-VFF(w,v) 'binary var, 1 if warehouse w with capacity level v is estimated, 0 otherwise'
+binary variable
 
-VFFF(n) 'binary var, 1 if supplier n is selected, 0 otherwise'
+VF(m,h,u) '1 if manufacturing plant m with technology h anf capacity u is estimated 0 otherwise'
 
-VG(m,w,k,s) 'binary var, 1 if there is a flow between plant m and warehouse w through mode k in scenario s , 0 otherwise'
+VFF(w,v) '1 if warehouse w with capacity level v is estimated, 0 otherwise'
 
-VGG(w,j,k,s) 'binary var, 1 if there is a flow between warehouse w and end-user j through mode k in scenario s, 0 otherwise'
+VFFF(n) '1 if supplier n is selected, 0 otherwise'
 
-VGGG(m,j,k,s) 'binary var, 1 if there is a flow between palnt m and end-user j through mode k in scenario s, 0 otherwise'
+VG(m,w,k,s) '1 if there is a flow between plant m and warehouse w through mode k in scenario s , 0 otherwise'
+
+VGG(w,j,k,s) '1 if there is a flow between warehouse w and end-user j through mode k in scenario s, 0 otherwise'
+
+VGGG(m,j,k,s) '1 if there is a flow between palnt m and end-user j through mode k in scenario s, 0 otherwise'
 ;
 
 variable
 
-z 'object function'
+z 'overall SCND costs at strategic and tactical level'
 
 ;
+
+equation
+
+cost 'objective function'
+
+row1 '(8) enforces the budget limitation for the establishment of manufacturing plants and warehouses'
+
+;
+
+cost .. z =e= sum((m,h,u),l_t(m,h)*f(m,h,u)*VF(m,h,u));
+
+row1 .. sum((m,h,u),f(m,h,u)*VF(m,h,u)) + sum((w,v),ff(w,v)*VFF(w,v)) =l= b;
+
+Model supplychain / all /;
+
+solve supplychain using MIP minimizing z;
+
+
 
 display pai;
 display d;

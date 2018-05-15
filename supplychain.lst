@@ -1,4 +1,4 @@
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:45:13 Page 1
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 10:39:20 Page 1
 green supply chain
 C o m p i l a t i o n
 
@@ -56,7 +56,7 @@ C o m p i l a t i o n
   54     k 'transport mode'        / water_carriage, train, airplane /
   55     j 'customer'              / New_South_Wales,  Victoria,  Queensland, South_Australia, Western_Australia /
   56     s 'scenario'              / s1*s24 /;
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:45:13 Page 2
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 10:39:20 Page 2
 green supply chain
 C o m p i l a t i o n
 
@@ -114,7 +114,7 @@ INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_f.csv
  113   /
 INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_ff.csv
  116  Victoria,large,1200
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:45:13 Page 3
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 10:39:20 Page 3
 green supply chain
 C o m p i l a t i o n
 
@@ -172,7 +172,7 @@ INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_cttt.csv
  180   
  181   p(i,h) 'processing time of a unit of product i with technology h'
  182   /
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:45:13 Page 4
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 10:39:20 Page 4
 green supply chain
 C o m p i l a t i o n
 
@@ -230,7 +230,7 @@ INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_ccc.csv
  245  /
  246   
  247   lb(m,w,k) 'minimium allowed transportation from plant m to warehouse w through mode k (m3)'
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:45:13 Page 5
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 10:39:20 Page 5
 green supply chain
 C o m p i l a t i o n
 
@@ -288,7 +288,7 @@ INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_em.csv
  311  product1,New_South_Wales,green,5
  312   
  313   
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:45:13 Page 6
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 10:39:20 Page 6
 green supply chain
 C o m p i l a t i o n
 
@@ -346,7 +346,7 @@ INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_pc.csv
 INCLUDE    /Users/renhongtao/gamsmodel/supply_chain/data_ps.csv
  379  s1,0.0417
  380  s2,0.0417
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:45:13 Page 7
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 10:39:20 Page 7
 green supply chain
 C o m p i l a t i o n
 
@@ -377,7 +377,7 @@ C o m p i l a t i o n
  405  /
  406  ;
  407   
- 408  positive variable
+ 408  variable
  409   
  410  VQ(i,m,h,s) 'amount of product i produced in plant m with technology h in scenario s'
  411   
@@ -395,63 +395,97 @@ C o m p i l a t i o n
  423   
  424  ;
  425   
- 426  variable
- 427   
- 428  VF(m,h,u) 'binary var, 1 if manufacturing plant m with technology h anf capacity u is estimated 0 otherwise'
- 429   
- 430  VFF(w,v) 'binary var, 1 if warehouse w with capacity level v is estimated, 0 otherwise'
- 431   
- 432  VFFF(n) 'binary var, 1 if supplier n is selected, 0 otherwise'
- 433   
- 434  VG(m,w,k,s) 'binary var, 1 if there is a flow between plant m and warehouse w through mode k in scenario s , 0 otherwise'
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:45:13 Page 8
+ 426  positive variable
+ 427  VQ
+ 428  VR
+ 429  VL
+ 430  VLL
+ 431  VLLL
+ 432  VO
+ 433  VE
+ 434  ;
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 10:39:20 Page 8
 green supply chain
 C o m p i l a t i o n
 
 
  435   
- 436  VGG(w,j,k,s) 'binary var, 1 if there is a flow between warehouse w and end-user j through mode k in scenario s, 0 otherwise'
- 437   
- 438  VGGG(m,j,k,s) 'binary var, 1 if there is a flow between palnt m and end-user j through mode k in scenario s, 0 otherwise'
- 439  ;
+ 436   
+ 437  binary variable
+ 438   
+ 439  VF(m,h,u) '1 if manufacturing plant m with technology h anf capacity u is estimated 0 otherwise'
  440   
- 441  variable
+ 441  VFF(w,v) '1 if warehouse w with capacity level v is estimated, 0 otherwise'
  442   
- 443  z 'object function'
+ 443  VFFF(n) '1 if supplier n is selected, 0 otherwise'
  444   
- 445  ;
+ 445  VG(m,w,k,s) '1 if there is a flow between plant m and warehouse w through mode k in scenario s , 0 otherwise'
  446   
- 447  display pai;
- 448  display d;
- 449  display f;
- 450  display ff;
- 451  display fff;
- 452  display cm;
- 453  display cs;
- 454  display ct;
- 455  display ctt;
- 456  display cttt;
- 457  display p;
- 458  display pp;
- 459  display alpha;
- 460  display c;
- 461  display cc;
- 462  display ccc;
- 463  display lb;
- 464  display lbb;
- 465  display lbbb;
- 466  display ub;
- 467  display ubb;
- 468  display ubbb;
- 469  display em;
- 470  display et;
- 471  display ett;
- 472  display ettt;
- 473  display l_t;
- 474  display ltt;
- 475  display pc;
- 476  display ps;
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 09:45:13 Page 9
+ 447  VGG(w,j,k,s) '1 if there is a flow between warehouse w and end-user j through mode k in scenario s, 0 otherwise'
+ 448   
+ 449  VGGG(m,j,k,s) '1 if there is a flow between palnt m and end-user j through mode k in scenario s, 0 otherwise'
+ 450  ;
+ 451   
+ 452  variable
+ 453   
+ 454  z 'overall SCND costs at strategic and tactical level'
+ 455   
+ 456  ;
+ 457   
+ 458  equation
+ 459   
+ 460  cost 'objective function'
+ 461   
+ 462  row1 '(8) enforces the budget limitation for the establishment of manufacturing plants and warehouses'
+ 463   
+ 464  ;
+ 465   
+ 466  cost .. z =e= sum((m,h,u),l_t(m,h)*f(m,h,u)*VF(m,h,u));
+ 467   
+ 468  row1 .. sum((m,h,u),f(m,h,u)*VF(m,h,u)) + sum((w,v),ff(w,v)*VFF(w,v)) =l= b;
+ 469   
+ 470  Model supplychain / all /;
+ 471   
+ 472  solve supplychain using MIP minimizing z;
+ 473   
+ 474   
+ 475   
+ 476  display pai;
+ 477  display d;
+ 478  display f;
+ 479  display ff;
+ 480  display fff;
+ 481  display cm;
+ 482  display cs;
+ 483  display ct;
+ 484  display ctt;
+ 485  display cttt;
+ 486  display p;
+ 487  display pp;
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/15/18 10:39:20 Page 9
+green supply chain
+C o m p i l a t i o n
+
+
+ 488  display alpha;
+ 489  display c;
+ 490  display cc;
+ 491  display ccc;
+ 492  display lb;
+ 493  display lbb;
+ 494  display lbbb;
+ 495  display ub;
+ 496  display ubb;
+ 497  display ubbb;
+ 498  display em;
+ 499  display et;
+ 500  display ett;
+ 501  display ettt;
+ 502  display l_t;
+ 503  display ltt;
+ 504  display pc;
+ 505  display ps;
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 10:39:20 Page 10
 green supply chain
 Include File Summary
 
@@ -492,31 +526,170 @@ Include File Summary
 
 
 COMPILATION TIME     =        0.009 SECONDS      3 MB  24.9.2 r64480 DEX-DEG
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 09:45:13 Page 10
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 10:39:20 Page 11
+green supply chain
+Equation Listing    SOLVE supplychain Using MIP From line 472
+
+
+---- cost  =E=  objective function
+
+cost..  - 6000*VF(New_South_Wales,green,small) - 12000*VF(New_South_Wales,green,medium) + z =E= 0 ; (LHS = 0)
+     
+
+---- row1  =L=  (8) enforces the budget limitation for the establishment of manufacturing plants and warehouses
+
+row1..  600*VF(New_South_Wales,green,small) + 1200*VF(New_South_Wales,green,medium) + 600*VFF(Queensland,small) + 1200*VFF(Victoria,large) =L= 30000000 ; (LHS = 0)
+     
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 10:39:20 Page 12
+green supply chain
+Column Listing      SOLVE supplychain Using MIP From line 472
+
+
+---- VF  1 if manufacturing plant m with technology h anf capacity u is estimated 0 otherwise
+
+VF(New_South_Wales,green,small)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -6000       cost
+      600       row1
+
+VF(New_South_Wales,green,medium)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+   -12000       cost
+     1200       row1
+
+
+---- VFF  1 if warehouse w with capacity level v is estimated, 0 otherwise
+
+VFF(Queensland,small)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      600       row1
+
+VFF(Victoria,large)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     1200       row1
+
+
+---- z  overall SCND costs at strategic and tactical level
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       cost
+
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 10:39:20 Page 13
+green supply chain
+Model Statistics    SOLVE supplychain Using MIP From line 472
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            2
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            5
+NON ZERO ELEMENTS             7     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.030 SECONDS      4 MB  24.9.2 r64480 DEX-DEG
+
+
+EXECUTION TIME       =        0.032 SECONDS      4 MB  24.9.2 r64480 DEX-DEG
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 10:39:20 Page 14
+green supply chain
+Solution Report     SOLVE supplychain Using MIP From line 472
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   supplychain         OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  472
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.054      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+IBM ILOG CPLEX   24.9.2 r64480 Released Nov 14, 2017 DEG x86 64bit/Mac OS X   
+Cplex 12.7.1.0
+
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+MIP status(101): integer optimal solution
+Cplex Time: 0.02sec (det. 0.01 ticks)
+Fixing integer variables, and solving final LP...
+Fixed MIP status(1): optimal
+Cplex Time: 0.01sec (det. 0.00 ticks)
+Proven optimal solution.
+
+MIP Solution:            0.000000    (0 iterations, 0 nodes)
+Final Solve:             0.000000    (0 iterations)
+
+Best possible:           0.000000
+Absolute gap:            0.000000
+Relative gap:            0.000000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU cost                .              .              .             1.0000      
+---- EQU row1              -INF             .       3.0000000E+7          .          
+
+  cost  objective function
+  row1  (8) enforces the budget limitation for the establishment of manufacturing plants and warehouses
+
+---- VAR VF  1 if manufacturing plant m with technology h anf capacity u is estimated 0 otherwise
+
+                                    LOWER          LEVEL          UPPER         MARGINAL
+
+New_South_Wales.green.small           .              .             1.0000      6000.0000      
+New_South_Wales.green.medium          .              .             1.0000     12000.0000      
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 10:39:20 Page 15
+green supply chain
+Solution Report     SOLVE supplychain Using MIP From line 472
+
+
+---- VAR VFF  1 if warehouse w with capacity level v is estimated, 0 otherwise
+
+                        LOWER          LEVEL          UPPER         MARGINAL
+
+Queensland.small          .              .             1.0000         EPS         
+Victoria  .large          .              .             1.0000         EPS         
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF             .            +INF             .          
+
+  z  overall SCND costs at strategic and tactical level
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 10:39:20 Page 16
 green supply chain
 E x e c u t i o n
 
 
-----    447 PARAMETER pai  Market price of carbon credit in scenario s
+----    476 PARAMETER pai  Market price of carbon credit in scenario s
 
 s1  600.000,    s2  300.000,    s4  600.000,    s5  300.000,    s7  600.000,    s8  300.000,    s10 600.000,    s11 300.000,    s13 600.000,    s14 300.000,    s16 600.000,    s17 300.000,    s19 600.000,    s20 300.000,    s22 600.000,    s23 300.000
 
 
-----    448 PARAMETER d  Forecasted demand for product i in end-user j in scenario s
+----    477 PARAMETER d  Forecasted demand for product i in end-user j in scenario s
 
                                   s1          s2
 
 product1.New_South_Wales      32.000      46.000
 
 
-----    449 PARAMETER f  Fixed costs of establishing  plant m with technology h and capacity u
+----    478 PARAMETER f  Fixed costs of establishing  plant m with technology h and capacity u
 
                             small      medium
 
 New_South_Wales.green     600.000    1200.000
 
 
-----    450 PARAMETER ff  Fixed costs of establishing  warehouse with capacity u
+----    479 PARAMETER ff  Fixed costs of establishing  warehouse with capacity u
 
                  small       large
 
@@ -524,30 +697,30 @@ Queensland     600.000
 Victoria                  1200.000
 
 
-----    451 PARAMETER fff  Fixed costs of selecting supplier n
+----    480 PARAMETER fff  Fixed costs of selecting supplier n
 
 Queensland        1200.000,    South_Australia    600.000,    Western_Australia  200.000
 
 
-----    452 PARAMETER cm  cost of manufacturing a unit of product i with technology h in plant m
+----    481 PARAMETER cm  cost of manufacturing a unit of product i with technology h in plant m
 
                                green  semi_green   pollutant
 
 product1.New_South_Wales    1200.000     800.000     200.000
 
 
-----    453 PARAMETER cs  cost of purchasing a unit of raw material r from supplier n for processing at plant m
+----    482 PARAMETER cs  cost of purchasing a unit of raw material r from supplier n for processing at plant m
 
                New_South~
 
 r1.Queensland       0.450
 
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 09:45:13 Page 11
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 10:39:20 Page 17
 green supply chain
 E x e c u t i o n
 
 
-----    454 PARAMETER ct  Per unit cost of shipment of product i from plant m to warehouse w through transport mode k
+----    483 PARAMETER ct  Per unit cost of shipment of product i from plant m to warehouse w through transport mode k
 
 INDEX 1 = product1
 
@@ -556,7 +729,7 @@ INDEX 1 = product1
 New_South_Wales.Victoria       1.800
 
 
-----    455 PARAMETER ctt  Per unit cost of shipment of product i from warehouse w to end-user j through transport mode k
+----    484 PARAMETER ctt  Per unit cost of shipment of product i from warehouse w to end-user j through transport mode k
 
 INDEX 1 = product1
 
@@ -565,7 +738,7 @@ INDEX 1 = product1
 Victoria.New_South_Wales       0.800
 
 
-----    456 PARAMETER cttt  Per unit cost of shipment of product i from plant m to end-user j through transport mode k
+----    485 PARAMETER cttt  Per unit cost of shipment of product i from plant m to end-user j through transport mode k
 
 INDEX 1 = product1
 
@@ -574,31 +747,31 @@ INDEX 1 = product1
 New_South_Wales.New_South_Wales      13.000
 
 
-----    457 PARAMETER p  processing time of a unit of product i with technology h
+----    486 PARAMETER p  processing time of a unit of product i with technology h
 
                green  semi_green
 
 product1       8.000       4.000
 
 
-----    458 PARAMETER pp  volume of a unit of product i (m3)
+----    487 PARAMETER pp  volume of a unit of product i (m3)
 
 product1 6.000,    product2 2.000
 
 
-----    459 PARAMETER alpha  amount of raw material r required in production of a unit of product i (kg)
+----    488 PARAMETER alpha  amount of raw material r required in production of a unit of product i (kg)
 
       product1
 
 r1       4.000
 r2      12.000
 
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 09:45:13 Page 12
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 10:39:20 Page 18
 green supply chain
 E x e c u t i o n
 
 
-----    460 PARAMETER c  production capacity (time) in plant m with technology h and capacity u (h)
+----    489 PARAMETER c  production capacity (time) in plant m with technology h and capacity u (h)
 
                                  small
 
@@ -606,74 +779,74 @@ New_South_Wales.green            4.000
 New_South_Wales.semi_green      12.000
 
 
-----    461 PARAMETER cc  holding capacity in warehouse w with capacity level v (m3)
+----    490 PARAMETER cc  holding capacity in warehouse w with capacity level v (m3)
 
                       small       large
 
 New_South_Wales       4.000      12.000
 
 
-----    462 PARAMETER ccc  raw material capacity for raw material r in supplier n (kg)
+----    491 PARAMETER ccc  raw material capacity for raw material r in supplier n (kg)
 
     Queensland  South_Aus~
 
 r1       4.000      12.000
 
 
-----    463 PARAMETER lb  minimium allowed transportation from plant m to warehouse w through mode k (m3)
+----    492 PARAMETER lb  minimium allowed transportation from plant m to warehouse w through mode k (m3)
 
                      water_car~
 
 Victoria.Queensland       5.000
 
 
-----    464 PARAMETER lbb  minimium allowed transportation from warehouse w to end-user j through mode k (m3)
+----    493 PARAMETER lbb  minimium allowed transportation from warehouse w to end-user j through mode k (m3)
 
                      water_car~
 
 Victoria.Queensland       5.000
 
 
-----    465 PARAMETER lbbb  minimium allowed transportation from plant m to end-user j through mode k (m3)
+----    494 PARAMETER lbbb  minimium allowed transportation from plant m to end-user j through mode k (m3)
 
                      water_car~
 
 Victoria.Queensland       5.000
 
 
-----    466 PARAMETER ub  Maximum allowed transportation from plant m to warehouse w through mode k (m3)
+----    495 PARAMETER ub  Maximum allowed transportation from plant m to warehouse w through mode k (m3)
 
                      water_car~
 
 Victoria.Queensland      15.000
 
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 09:45:13 Page 13
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 10:39:20 Page 19
 green supply chain
 E x e c u t i o n
 
 
-----    467 PARAMETER ubb  Maximum allowed transportation from warehouse w to end-user j through mode k (m3)
+----    496 PARAMETER ubb  Maximum allowed transportation from warehouse w to end-user j through mode k (m3)
 
                      water_car~
 
 Victoria.Queensland      15.000
 
 
-----    468 PARAMETER ubbb  Maximum allowed transportation from plant m to end-user j through mode k (m3)
+----    497 PARAMETER ubbb  Maximum allowed transportation from plant m to end-user j through mode k (m3)
 
                      water_car~
 
 Victoria.Queensland      15.000
 
 
-----    469 PARAMETER em  estimated carbon emissions to produce a unit of product i with technology h in plant m (ton)
+----    498 PARAMETER em  estimated carbon emissions to produce a unit of product i with technology h in plant m (ton)
 
                                green
 
 product1.New_South_Wales       5.000
 
 
-----    470 PARAMETER et  estimated carbon emissions for shipping a unit of product i from plant m to warehouse w through mode k (ton)
+----    499 PARAMETER et  estimated carbon emissions for shipping a unit of product i from plant m to warehouse w through mode k (ton)
 
 INDEX 1 = product1
 
@@ -682,7 +855,7 @@ INDEX 1 = product1
 New_South_Wales.Victoria       8.000
 
 
-----    471 PARAMETER ett  estimated carbon emissions for shipping a unit of product i from warehouse w  to end-user j through mode k (ton)
+----    500 PARAMETER ett  estimated carbon emissions for shipping a unit of product i from warehouse w  to end-user j through mode k (ton)
 
 INDEX 1 = product1
 
@@ -691,7 +864,7 @@ INDEX 1 = product1
 New_South_Wales.Victoria       8.000
 
 
-----    472 PARAMETER ettt  estimated carbon emissions for shipping a unit of product i from plant m to end-user j through mode k (ton)
+----    501 PARAMETER ettt  estimated carbon emissions for shipping a unit of product i from plant m to end-user j through mode k (ton)
 
 INDEX 1 = product1
 
@@ -699,38 +872,38 @@ INDEX 1 = product1
 
 New_South_Wales.Victoria       8.000
 
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 09:45:13 Page 14
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/15/18 10:39:20 Page 20
 green supply chain
 E x e c u t i o n
 
 
-----    473 PARAMETER l_t   Conversion Parameter of fixed costs of establishing plant m with technology h into annual equivalent
+----    502 PARAMETER l_t   Conversion Parameter of fixed costs of establishing plant m with technology h into annual equivalent
 
                       green
 
 New_South_Wales      10.000
 
 
-----    474 PARAMETER ltt   Conversion Parameter of fixed costs of establishing warehouse w into annual equivalent
+----    503 PARAMETER ltt   Conversion Parameter of fixed costs of establishing warehouse w into annual equivalent
 
 Victoria 8.000
 
 
-----    475 PARAMETER pc  penalty  cost for shortage of a unit of product i in end-user j
+----    504 PARAMETER pc  penalty  cost for shortage of a unit of product i in end-user j
 
           New_South~
 
 product1       8.000
 
 
-----    476 PARAMETER ps  probability of scenario s
+----    505 PARAMETER ps  probability of scenario s
 
 s1  0.042,    s2  0.042,    s3  0.042,    s4  0.042,    s5  0.042,    s6  0.042,    s7  0.042,    s8  0.042,    s9  0.042,    s10 0.042,    s11 0.042,    s12 0.042,    s13 0.042,    s14 0.042,    s15 0.042,    s16 0.042,    s17 0.042,    s18 0.042
 s19 0.042,    s20 0.042,    s21 0.042,    s22 0.042,    s23 0.042,    s24 0.041
 
 
 
-EXECUTION TIME       =        0.001 SECONDS      4 MB  24.9.2 r64480 DEX-DEG
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.9.2 r64480 DEX-DEG
 
 
 USER: GAMS Development Corporation, USA              G871201/0000CA-ANY
