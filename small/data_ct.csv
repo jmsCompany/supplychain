@@ -1,0 +1,16 @@
+product1,New_South_Wales,Victoria,train,1.8
+product1,New_South_Wales,Victoria,airplane,2.8
+product1,New_South_Wales,Western_Australia,train,1
+product1,New_South_Wales,Western_Australia,airplane,1.2
+product2,New_South_Wales,Victoria,train,1.4
+product2,New_South_Wales,Victoria,airplane,2.4
+product2,New_South_Wales,Western_Australia,train,0.8
+product2,New_South_Wales,Western_Australia,airplane,1.1
+product1,Victoria,Victoria,train,0.1
+product1,Victoria,Victoria,airplane,0.1
+product1,Victoria,Western_Australia,train,1
+product1,Victoria,Western_Australia,airplane,1.2
+product2,Victoria,Victoria,train,0.1
+product2,Victoria,Victoria,airplane,0.1
+product2,Victoria,Western_Australia,train,0.8
+product2,Victoria,Western_Australia,airplane,1.1

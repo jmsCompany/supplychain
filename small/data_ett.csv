@@ -1,0 +1,16 @@
+product1,Western_Australia,Victoria,train,0.1
+product1,Western_Australia,Victoria,airplane,0.3
+product1,Western_Australia,Queensland,train,0.1
+product1,Western_Australia,Queensland,airplane,0.3
+product2,Western_Australia,Victoria,train,0.1
+product2,Western_Australia,Victoria,airplane,0.3
+product2,Western_Australia,Queensland,train,0.1
+product2,Western_Australia,Queensland,airplane,0.3
+product1,Victoria,Victoria,train,0.01
+product1,Victoria,Victoria,airplane,0.1
+product1,Victoria,Queensland,train,0.1
+product1,Victoria,Queensland,airplane,0.2
+product2,Victoria,Victoria,train,0.01
+product2,Victoria,Victoria,airplane,0.1
+product2,Victoria,Queensland,train,0.1
+product2,Victoria,Queensland,airplane,0.3

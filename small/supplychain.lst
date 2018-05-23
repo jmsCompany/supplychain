@@ -1,0 +1,2546 @@
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/23/18 12:36:29 Page 1
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+C o m p i l a t i o n
+
+
+       
+      绿色供应链模型：
+      1）五个最终消费者（customer）：New South Wales, Victoria, Queensland, South Australia and Western Australia
+      2）五个可能创建的工厂 (plant)：New South Wales, Victoria, Queensland, South Australia and Western Australia
+      3）五个可能的仓库 (warehouse)：New South Wales, Victoria, Queensland, South Australia and Western Australia
+      4）三个供应商 (supplier)：Queensland, South Australia and Western Australia
+      5) 三个产品类型 (products type)：product1,product2,product3 
+      6）工厂容量类别（capacity）：small, medium , large 
+      7) 仓库(capacity)类别： small , large
+      8) 三类生产技术：greener technology：  low, medium, high
+      9) 预算( budget constraint ): $30 000 000
+      10) 24种场景(scenarios) : 对三类不同产品的需求估计（乐观、悲观 “optimistic” or “pessimistic”) 2*2*2=8,
+                              碳价（carbon price： low, medium and high.） 3*8=24
+                              *s1   代表product1乐观，product2乐观，product3乐观， 碳价高
+                              *s2   代表product1乐观，product2乐观，product3乐观， 碳价正常
+                              *s3   代表product1乐观，product2乐观，product3乐观， 碳价底
+                              *s4   代表product1乐观，product2乐观，product3悲观， 碳价高 
+                              *s5   代表product1乐观，product2乐观，product3悲观， 碳价正常 
+                              *s6   代表product1乐观，product2乐观，product3悲观， 碳价底 
+                              *s7   代表product1乐观，product2悲观，product3乐观， 碳价高
+                              *s8   代表product1乐观，product2悲观，product3乐观， 碳价正常
+                              *s9   代表product1乐观，product2悲观，product3乐观， 碳价底 
+                              *s10  代表product1乐观，product2悲观，product3悲观， 碳价高
+                              *s11  代表product1乐观，product2悲观，product3悲观， 碳价正常
+                              *s12  代表product1乐观，product2悲观，product3悲观， 碳价底 
+                              *s13  代表product1悲观，product2乐观，product3乐观， 碳价高
+                              *s14  代表product1悲观，product2乐观，product3乐观， 碳价正常
+                              *s15  代表product1悲观，product2乐观，product3乐观， 碳价底 
+                              *s16  代表product1悲观，product2乐观，product3悲观， 碳价高 
+                              *s17  代表product1悲观，product2乐观，product3悲观， 碳价正常 
+                              *s18  代表product1悲观，product2乐观，product3悲观， 碳价底 
+                              *s19  代表product1悲观，product2悲观，product3乐观， 碳价高
+                              *s20  代表product1悲观，product2悲观，product3乐观， 碳价正常
+                              *s21  代表product1悲观，product2悲观，product3乐观， 碳价底 
+                              *s22  代表product1悲观，product2悲观，product3悲观， 碳价高
+                              *s23  代表product1悲观，product2悲观，product3悲观， 碳价正常
+                              *s24  代表product1悲观，product2悲观，product3悲观， 碳价底
+      11) 三种运输方案（transport mode）      
+      12) 原材料 raw material r                   
+  43   
+  44  Set
+  45   
+  46     i 'product type'          / product1,  product2 /
+  47     r 'raw material'          / r1, r2 /
+  48     n 'supplier'              / Queensland, South_Australia /
+  49     m 'plant'                 / New_South_Wales,  Victoria /
+  50     h 'technology'            / green, pollutant /
+  51     u 'plant capacity'        / small, large /
+  52     w 'warehouse'             / Victoria,  Western_Australia /
+  53     v 'warehouse capacity'    / small, large /
+  54     k 'transport mode'        / train, airplane /
+  55     j 'customer'              / Victoria,  Queensland /
+  56     s 'scenario'              / s1*s3 /;
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/23/18 12:36:29 Page 2
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+C o m p i l a t i o n
+
+
+  57   
+  58   
+  59  Scalar b   'total budget'                                            / 300000 /
+  60         cap 'Maximum overall allowed carbon emissions (ton)'          / 10000  /;
+  61   
+  62  Parameter
+  63     pai(s) 'Market price of carbon credit in scenario s'
+  64  /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_pai.csv
+  67  s1,0
+  68  s2,300
+  69  s3,1000
+  71  /
+  72   
+  73    d(i,j,s) 'Forecasted demand for product i in end-user j in scenario s'
+  74  /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_d.csv
+  77  product1,Victoria,s1,300000
+  78  product1,Queensland,s1,400000
+  79  product2,Victoria,s1,200000
+  80  product2,Queensland,s1,600000
+  81  product1,Victoria,s2,300000
+  82  product1,Queensland,s2,400000
+  83  product2,Victoria,s2,200000
+  84  product2,Queensland,s2,600000
+  86  /
+  87   
+  88   f(m,h,u) 'Fixed costs of establishing plant m with technology h and capacity u'
+  89   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_f.csv
+  92  New_South_Wales,green,small,12000
+  93  Victoria,green,small,6000
+  94  New_South_Wales,pollutant,small,6000
+  95  Victoria,pollutant,small,3000
+  96  New_South_Wales,green,large,24000
+  97  Victoria,green,large,12000
+  98  New_South_Wales,pollutant,large,12000
+  99  Victoria,pollutant,large,6000
+ 101  /
+ 102   
+ 103    ff(w,v) 'Fixed costs of establishing  warehouse w with capacity v'
+ 104   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_ff.csv
+ 107  Victoria,small,6000
+ 108  Victoria,large,12000
+ 109  Western_Australia,small,6500
+ 110  Western_Australia,large,13000
+ 112  /
+ 113    fff(n) 'Fixed costs of selecting supplier n'
+ 114   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_fff.csv
+ 117  Queensland,1500
+ 118  South_Australia,1000
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/23/18 12:36:29 Page 3
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+C o m p i l a t i o n
+
+
+ 120  /
+ 121   
+ 122    cm(i,m,h) 'cost of manufacturing a unit of product i with technology h in plant m'
+ 123   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_cm.csv
+ 126  product1,New_South_Wales,green,60
+ 127  product1,New_South_Wales,pollutant,20
+ 128  product1,Victoria,green,60
+ 129  product1,Victoria,pollutant,20
+ 130  product2,New_South_Wales,green,65
+ 131  product2,New_South_Wales,pollutant,22
+ 132  product2,Victoria,green,65
+ 133  product2,Victoria,pollutant,22
+ 135  /
+ 136   
+ 137    cs(r,n,m) 'cost of purchasing a unit of raw material r from supplier n for processing at plant m'
+ 138   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_cs.csv
+ 141  r1,Queensland,New_South_Wales,10
+ 142  r1,South_Australia,New_South_Wales,10
+ 143  r1,Queensland,Victoria,10
+ 144  r1,South_Australia,Victoria,8
+ 145  r2,Queensland,New_South_Wales,8
+ 146  r2,South_Australia,New_South_Wales,8
+ 147  r2,Queensland,Victoria,8
+ 148  r2,South_Australia,Victoria,8
+ 150  /
+ 151   
+ 152    ct(i,m,w,k) 'Per unit cost of shipment of product i from plant m to warehouse w through transport mode k'
+ 153  /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_ct.csv
+ 156  product1,New_South_Wales,Victoria,train,1.8
+ 157  product1,New_South_Wales,Victoria,airplane,2.8
+ 158  product1,New_South_Wales,Western_Australia,train,1
+ 159  product1,New_South_Wales,Western_Australia,airplane,1.2
+ 160  product2,New_South_Wales,Victoria,train,1.4
+ 161  product2,New_South_Wales,Victoria,airplane,2.4
+ 162  product2,New_South_Wales,Western_Australia,train,0.8
+ 163  product2,New_South_Wales,Western_Australia,airplane,1.1
+ 164  product1,Victoria,Victoria,train,0.1
+ 165  product1,Victoria,Victoria,airplane,0.1
+ 166  product1,Victoria,Western_Australia,train,1
+ 167  product1,Victoria,Western_Australia,airplane,1.2
+ 168  product2,Victoria,Victoria,train,0.1
+ 169  product2,Victoria,Victoria,airplane,0.1
+ 170  product2,Victoria,Western_Australia,train,0.8
+ 171  product2,Victoria,Western_Australia,airplane,1.1
+ 173  /
+ 174   
+ 175  ctt(i,w,j,k) 'Per unit cost of shipment of product i from warehouse w to end-user j through transport mode k'
+ 176  /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_ctt.csv
+ 179  product1,Western_Australia,Victoria,train,1.8
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/23/18 12:36:29 Page 4
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+C o m p i l a t i o n
+
+
+ 180  product1,Western_Australia,Victoria,airplane,2.8
+ 181  product1,Western_Australia,Queensland,train,1
+ 182  product1,Western_Australia,Queensland,airplane,1.2
+ 183  product2,Western_Australia,Victoria,train,1.4
+ 184  product2,Western_Australia,Victoria,airplane,2.4
+ 185  product2,Western_Australia,Queensland,train,0.8
+ 186  product2,Western_Australia,Queensland,airplane,1.1
+ 187  product1,Victoria,Victoria,train,0.1
+ 188  product1,Victoria,Victoria,airplane,1
+ 189  product1,Victoria,Queensland,train,1
+ 190  product1,Victoria,Queensland,airplane,1.2
+ 191  product2,Victoria,Victoria,train,0.1
+ 192  product2,Victoria,Victoria,airplane,1
+ 193  product2,Victoria,Queensland,train,0.8
+ 194  product2,Victoria,Queensland,airplane,1.1
+ 196  /
+ 197   
+ 198   cttt(i,m,j,k) 'Per unit cost of shipment of product i from plant m to end-user j through transport mode k'
+ 199   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_cttt.csv
+ 202  product1,New_South_Wales,Victoria,train,1.8
+ 203  product1,New_South_Wales,Victoria,airplane,2.8
+ 204  product1,New_South_Wales,Queensland,train,1
+ 205  product1,New_South_Wales,Queensland,airplane,1.2
+ 206  product2,New_South_Wales,Victoria,train,1.4
+ 207  product2,New_South_Wales,Victoria,airplane,2.4
+ 208  product2,New_South_Wales,Queensland,train,0.8
+ 209  product2,New_South_Wales,Queensland,airplane,1.1
+ 210  product1,Victoria,Victoria,train,0.1
+ 211  product1,Victoria,Victoria,airplane,0.1
+ 212  product1,Victoria,Queensland,train,1
+ 213  product1,Victoria,Queensland,airplane,1.2
+ 214  product2,Victoria,Victoria,train,0.1
+ 215  product2,Victoria,Victoria,airplane,0.1
+ 216  product2,Victoria,Queensland,train,0.8
+ 217  product2,Victoria,Queensland,airplane,1.1
+ 219  /
+ 220   
+ 221   p(i,h) 'processing time of a unit of product i with technology h'
+ 222   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_p.csv
+ 225  product1,green,8
+ 226  product1,pollutant,4
+ 227  product2,green,6
+ 228  product2,pollutant,3
+ 230  /
+ 231   
+ 232   pp(i) 'volume of a unit of product i (m3)'
+ 233   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_pp.csv
+ 236  product1,6
+ 237  product2,2
+ 239  /
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/23/18 12:36:29 Page 5
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+C o m p i l a t i o n
+
+
+ 240   
+ 241   alpha(r,i) 'amount of raw material r required in production of a unit of product i (kg)'
+ 242   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_alpha.csv
+ 245  r1,product1,1
+ 246  r2,product1,1
+ 247  r1,product2,1
+ 248  r2,product2,1
+ 250  /
+ 251   
+ 252   c(m,h,u) 'production capacity (time) in plant m with technology h and capacity u (h)'
+ 253   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_c.csv
+ 256  New_South_Wales,green,small,10000000
+ 257  New_South_Wales,green,large,12000000
+ 258  New_South_Wales,pollutant,small,8000000
+ 259  New_South_Wales,pollutant,large,10000000
+ 260  Victoria,green,small,10000000
+ 261  Victoria,green,large,12000000
+ 262  Victoria,pollutant,small,8000000
+ 263  Victoria,pollutant,large,10000000
+ 265  /
+ 266   
+ 267   cc(w,v) 'holding capacity in warehouse w with capacity level v (m3)'
+ 268   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_cc.csv
+ 271  Victoria,small,8000000
+ 272  Victoria,large,1200000
+ 273  Western_Australia,small,800000
+ 274  Western_Australia,large,1200000
+ 276  /
+ 277   
+ 278   ccc(r,n) 'raw material capacity for raw material r in supplier n (kg)'
+ 279   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_ccc.csv
+ 282  r1,Queensland,400000
+ 283  r1,South_Australia,1200000
+ 284  r2,Queensland,400000
+ 285  r2,South_Australia,1200000
+ 287  /
+ 288   
+ 289   lb(m,w,k) 'minimium allowed transportation from plant m to warehouse w through mode k (m3)'
+ 290   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_lb.csv
+ 293  New_South_Wales,Victoria,train,1
+ 294  New_South_Wales,Victoria,airplane,1
+ 295  New_South_Wales,Western_Australia,train,1
+ 296  New_South_Wales,Western_Australia,airplane,1
+ 297  Victoria,Victoria,train,1
+ 298  Victoria,Victoria,airplane,1
+ 299  Victoria,Western_Australia,train,1
+ 300  Victoria,Western_Australia,airplane,1
+ 302  /
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/23/18 12:36:29 Page 6
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+C o m p i l a t i o n
+
+
+ 303   
+ 304   lbb(w,j,k) 'minimium allowed transportation from warehouse w to end-user j through mode k (m3)'
+ 305   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_lbb.csv
+ 308  Victoria,Victoria,train,1
+ 309  Victoria,Victoria,airplane,1
+ 310  Victoria,Queensland,train,1
+ 311  Victoria,Queensland,airplane,1
+ 312  Western_Australia,Victoria,train,1
+ 313  Western_Australia,Victoria,airplane,1
+ 314  Western_Australia,Queensland,train,1
+ 315  Western_Australia,Queensland,airplane,1
+ 317  /
+ 318   
+ 319   lbbb(m,j,k) 'minimium allowed transportation from plant m to end-user j through mode k (m3)'
+ 320   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_lbbb.csv
+ 323  Victoria,Victoria,train,1
+ 324  Victoria,Victoria,airplane,1
+ 325  Victoria,Queensland,train,1
+ 326  Victoria,Queensland,airplane,1
+ 327  New_South_Wales,Victoria,train,1
+ 328  New_South_Wales,Victoria,airplane,1
+ 329  New_South_Wales,Queensland,train,1
+ 330  New_South_Wales,Queensland,airplane,1
+ 332  /
+ 333   
+ 334   
+ 335   
+ 336   ub(m,w,k) 'Maximum allowed transportation from plant m to warehouse w through mode k (m3)'
+ 337   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_ub.csv
+ 340  New_South_Wales,Victoria,train,1000000
+ 341  New_South_Wales,Victoria,airplane,100000
+ 342  New_South_Wales,Western_Australia,train,1000000
+ 343  New_South_Wales,Western_Australia,airplane,1000000
+ 344  Victoria,Victoria,train,1000000
+ 345  Victoria,Victoria,airplane,1000000
+ 346  Victoria,Western_Australia,train,1000000
+ 347  Victoria,Western_Australia,airplane,1000000
+ 349  /
+ 350   
+ 351   ubb(w,j,k) 'Maximum allowed transportation from warehouse w to end-user j through mode k (m3)'
+ 352   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_ubb.csv
+ 355  Victoria,Victoria,train,100000
+ 356  Victoria,Victoria,airplane,100000
+ 357  Victoria,Queensland,train,100000
+ 358  Victoria,Queensland,airplane,100000
+ 359  Western_Australia,Victoria,train,100000
+ 360  Western_Australia,Victoria,airplane,100000
+ 361  Western_Australia,Queensland,train,100000
+ 362  Western_Australia,Queensland,airplane,100000
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/23/18 12:36:29 Page 7
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+C o m p i l a t i o n
+
+
+ 364  /
+ 365   
+ 366   ubbb(m,j,k) 'Maximum allowed transportation from plant m to end-user j through mode k (m3)'
+ 367   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_ubbb.csv
+ 370  Victoria,Victoria,train,100000
+ 371  Victoria,Victoria,airplane,100000
+ 372  Victoria,Queensland,train,100000
+ 373  Victoria,Queensland,airplane,100000
+ 374  New_South_Wales,Victoria,train,100000
+ 375  New_South_Wales,Victoria,airplane,100000
+ 376  New_South_Wales,Queensland,train,100000
+ 377  New_South_Wales,Queensland,airplane,100000
+ 379  /
+ 380   
+ 381   em(i,m,h) 'estimated carbon emissions to produce a unit of product i with technology h in plant m (ton)'
+ 382   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_em.csv
+ 385  product1,New_South_Wales,green,0.6
+ 386  product1,New_South_Wales,pollutant,0.2
+ 387  product1,Victoria,green,0.6
+ 388  product1,Victoria,pollutant,0.6
+ 389  product2,New_South_Wales,green,0.6
+ 390  product2,New_South_Wales,pollutant,0.3
+ 391  product2,Victoria,green,0.6
+ 392  product2,Victoria,pollutant,0.2
+ 394  /
+ 395   
+ 396   et(i,m,w,k) 'estimated carbon emissions for shipping a unit of product i from plant m to warehouse w through mode k (ton)'
+ 397   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_et.csv
+ 400  product1,New_South_Wales,Victoria,train,0.1
+ 401  product1,New_South_Wales,Victoria,airplane,0.4
+ 402  product1,New_South_Wales,Western_Australia,train,0.15
+ 403  product1,New_South_Wales,Western_Australia,airplane,0.4
+ 404  product2,New_South_Wales,Victoria,train,0.1
+ 405  product2,New_South_Wales,Victoria,airplane,0.3
+ 406  product2,New_South_Wales,Western_Australia,train,0.1
+ 407  product2,New_South_Wales,Western_Australia,airplane,0.2
+ 408  product1,Victoria,Victoria,train,0.01
+ 409  product1,Victoria,Victoria,airplane,0.1
+ 410  product1,Victoria,Western_Australia,train,0.11
+ 411  product1,Victoria,Western_Australia,airplane,0.4
+ 412  product2,Victoria,Victoria,train,0.01
+ 413  product2,Victoria,Victoria,airplane,0.1
+ 414  product2,Victoria,Western_Australia,train,0.1
+ 415  product2,Victoria,Western_Australia,airplane,0.4
+ 417  /
+ 418   
+ 419   
+ 420   ett(i,w,j,k) 'estimated carbon emissions for shipping a unit of product i from warehouse w  to end-user j through mode k (ton)'
+ 421   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_ett.csv
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/23/18 12:36:29 Page 8
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+C o m p i l a t i o n
+
+
+ 424  product1,Western_Australia,Victoria,train,0.1
+ 425  product1,Western_Australia,Victoria,airplane,0.3
+ 426  product1,Western_Australia,Queensland,train,0.1
+ 427  product1,Western_Australia,Queensland,airplane,0.3
+ 428  product2,Western_Australia,Victoria,train,0.1
+ 429  product2,Western_Australia,Victoria,airplane,0.3
+ 430  product2,Western_Australia,Queensland,train,0.1
+ 431  product2,Western_Australia,Queensland,airplane,0.3
+ 432  product1,Victoria,Victoria,train,0.01
+ 433  product1,Victoria,Victoria,airplane,0.1
+ 434  product1,Victoria,Queensland,train,0.1
+ 435  product1,Victoria,Queensland,airplane,0.2
+ 436  product2,Victoria,Victoria,train,0.01
+ 437  product2,Victoria,Victoria,airplane,0.1
+ 438  product2,Victoria,Queensland,train,0.1
+ 439  product2,Victoria,Queensland,airplane,0.3
+ 441  /
+ 442   
+ 443   
+ 444   
+ 445   ettt(i,m,j,k) 'estimated carbon emissions for shipping a unit of product i from plant m to end-user j through mode k (ton)'
+ 446   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_ettt.csv
+ 449  product1,New_South_Wales,Victoria,train,0.1
+ 450  product1,New_South_Wales,Victoria,airplane,0.3
+ 451  product1,New_South_Wales,Queensland,train,0.1
+ 452  product1,New_South_Wales,Queensland,airplane,0.3
+ 453  product2,New_South_Wales,Victoria,train,0.1
+ 454  product2,New_South_Wales,Victoria,airplane,0.3
+ 455  product2,New_South_Wales,Queensland,train,0.1
+ 456  product2,New_South_Wales,Queensland,airplane,0.3
+ 457  product1,Victoria,Victoria,train,0.01
+ 458  product1,Victoria,Victoria,airplane,0.1
+ 459  product1,Victoria,Queensland,train,0.1
+ 460  product1,Victoria,Queensland,airplane,0.3
+ 461  product2,Victoria,Victoria,train,0.01
+ 462  product2,Victoria,Victoria,airplane,0.1
+ 463  product2,Victoria,Queensland,train,0.1
+ 464  product2,Victoria,Queensland,airplane,0.3
+ 466  /
+ 467   
+ 468   
+ 469   l_t(m,h) ' Conversion Parameter of fixed costs of establishing plant m with technology h into annual equivalent'
+ 470   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_lt.csv
+ 473  New_South_Wales,green,0.1
+ 474  New_South_Wales,pollutant,0.2
+ 475  Victoria,green,0.1
+ 476  Victoria,pollutant,0.2
+ 478  /
+ 479   
+ 480   ltt(w) ' Conversion Parameter of fixed costs of establishing warehouse w into annual equivalent'
+ 481   /
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   05/23/18 12:36:29 Page 9
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+C o m p i l a t i o n
+
+
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_ltt.csv
+ 484  Victoria,0.1
+ 485  Western_Australia,0.1
+ 487  /
+ 488   
+ 489   pc(i,j) 'penalty  cost for shortage of a unit of product i in end-user j'
+ 490   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_pc.csv
+ 493  product1,Victoria,10000
+ 494  product1,Queensland,10000
+ 495  product2,Victoria,8000
+ 496  product2,Queensland,8000
+ 498  /
+ 499   
+ 500   ps(s) 'probability of scenario s'
+ 501   /
+INCLUDE    /Users/renhongtao/gamsmodel/supply_chain_small/data_ps.csv
+ 504  s1,0.33
+ 505  s2,0.33
+ 506  s3,0.34
+ 508  /
+ 509  ;
+ 510   
+ 511  variable
+ 512   
+ 513  VQ(i,m,h,s) 'amount of product i produced in plant m with technology h in scenario s'
+ 514   
+ 515  VR(r,n,m,s) 'amount of raw material r shipped from supplier n to plant m in scenario s'
+ 516   
+ 517  VL(i,m,w,k,s) 'amount of product i shipped from plant m to warehouse w through technology k in scenario s'
+ 518   
+ 519  VLL(i,w,j,k,s) 'amount of product i shipped from warehouse w through technology k in scenario s'
+ 520   
+ 521  VLLL(i,m,j,k,s) 'amount of product i shipped from plant m to end-user j through technology k in scenario s'
+ 522   
+ 523  VO(i,j,s) 'amount of shortage for product i in end-user j in scenario s'
+ 524   
+ 525  VE(s) 'Net number of carbon credits traded in scenario s'
+ 526   
+ 527  ;
+ 528   
+ 529  positive variable
+ 530  VQ
+ 531  VR
+ 532  VL
+ 533  VLL
+ 534  VLLL
+ 535  VO
+ 536  ;
+ 537   
+ 538   
+ 539  binary variable
+ 540   
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 10
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+C o m p i l a t i o n
+
+
+ 541  VF(m,h,u) '1 if manufacturing plant m with technology h and capacity u is estimated 0 otherwise'
+ 542   
+ 543  VFF(w,v) '1 if warehouse w with capacity level v is estimated, 0 otherwise'
+ 544   
+ 545  VFFF(n) '1 if supplier n is selected, 0 otherwise'
+ 546   
+ 547  VG(m,w,k,s) '1 if there is a flow between plant m and warehouse w through mode k in scenario s , 0 otherwise'
+ 548   
+ 549  VGG(w,j,k,s) '1 if there is a flow between warehouse w and end-user j through mode k in scenario s, 0 otherwise'
+ 550   
+ 551  VGGG(m,j,k,s) '1 if there is a flow between plant m and end-user j through mode k in scenario s, 0 otherwise'
+ 552   
+ 553  ;
+ 554   
+ 555  variable
+ 556   
+ 557  z 'overall SCND costs at strategic and tactical level'
+ 558   
+ 559  ;
+ 560   
+ 561  equation
+ 562   
+ 563  cost 'objective function'
+ 564   
+ 565  row1 '(8) enforces the budget limitation for the establishment of manufacturing plants and warehouses'
+ 566   
+ 567  row2(m) '(9) ensure that no more than one facility can be established in each candidate location'
+ 568   
+ 569  row3(w) '(10) ensure that no more than one facility can be established in each candidate location'
+ 570   
+ 571  row4(s) '(11) carbon credit limitation at each scenario by substracting the production and transport emissions from regular cap.'
+ 572   
+ 573  row5(m,h,s) '(12) enforce the capacity limitation of the manufacturing plants'
+ 574   
+ 575  *row6(w,s) '(13) enforce the capacity limitation of the warehouse'
+ 576   
+ 577  row7(r,n,s) '(14) formulates the limitation in raw material provision by suppliers'
+ 578   
+ 579  row8(r,m,s) '(15) guarantees the fulfillment of raw material requirement in the manufacturing plants'
+ 580   
+ 581  row9(i,m,s) '(16) enforce the flow balance in manufacturing plant'
+ 582   
+ 583  row10(i,w,s) '(17) enforce the flow balance in warehouse'
+ 584   
+ 585  row11(i,j,s) '(18) enforce the flow balance in end-user'
+ 586   
+ 587  row12(m,w,k,s) '(19)  impose the product flow limitations between different supply chain participants'
+ 588   
+ 589  row13(m,w,k,s) '(19)  impose the product flow limitations between different supply chain participants1'
+ 590   
+ 591  row14(w,j,k,s) '(20) mpose the product flow limitations between different supply chain participants'
+ 592   
+ 593  row15(w,j,k,s) '(20) mpose the product flow limitations between different supply chain participants1'
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 11
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+C o m p i l a t i o n
+
+
+ 594   
+ 595  row16(m,j,k,s) '(21) mpose the product flow limitations between different supply chain participants'
+ 596   
+ 597  row17(m,j,k,s) '(21) mpose the product flow limitations between different supply chain participants1'
+ 598   
+ 599  ;
+ 600   
+ 601  cost .. z =e=
+ 602                sum((m,h,u),l_t(m,h)*f(m,h,u)*VF(m,h,u))
+ 603                + sum((w,v),ltt(w)*ff(w,v)*VFF(w,v))
+ 604                + sum(n,fff(n)*VFFF(n))
+ 605                + sum(s,ps(s)*sum((i,m,w,k),ct(i,m,w,k)*VL(i,m,w,k,s)))
+ 606                 + sum(s,ps(s)*sum((i,w,j,k),ctt(i,w,j,k)*VLL(i,w,j,k,s)))
+ 607                + sum(s,ps(s)*sum((i,m,j,k),cttt(i,m,j,k)*VLLL(i,m,j,k,s)))
+ 608                + sum(s,ps(s)*sum((i,m,h),cm(i,m,h)*VQ(i,m,h,s)))
+ 609                + sum(s,ps(s)*sum((r,n,m),cs(r,n,m)*VR(r,n,m,s)))
+ 610               +  sum(s,ps(s)*sum((i,j),pc(i,j)*VO(i,j,s)))
+ 611               + sum(s,ps(s)*pai(s)*VE(s))
+ 612                ;
+ 613   
+ 614  row1 .. sum((m,h,u),f(m,h,u)*VF(m,h,u)) + sum((w,v),ff(w,v)*VFF(w,v)) =l= b;
+ 615   
+ 616  row2(m) .. sum((h,u),VF(m,h,u)) =e= 1;
+ 617   
+ 618  row3(w) .. sum(v,VFF(w,v)) =e= 1;
+ 619   
+ 620  row4(s) .. sum((i,m,w,k),et(i,m,w,k)*VL(i,m,w,k,s))
+ 621             + sum((i,w,j,k),ett(i,w,j,k)*VLL(i,w,j,k,s))
+ 622             + sum((i,m,j,k),ettt(i,m,j,k)*VLLL(i,m,j,k,s))
+ 623             + sum((i,m,h),em(i,m,h)*VQ(i,m,h,s))
+ 624             -cap =e= VE(s);
+ 625   
+ 626  row5(m,h,s) .. sum(i,p(i,h)*VQ(i,m,h,s)) =l= sum(u,c(m,h,u)*VF(m,h,u));
+ 627   
+ 628  *row6(w,s) .. sum((i,m,k),pp(i)*VL(i,m,w,k,s)) =l= sum(v,cc(w,v)*VFF(w,v));
+ 629   
+ 630  row7(r,n,s) .. sum(m,VR(r,n,m,s)) =l= ccc(r,n)*VFFF(n);
+ 631   
+ 632  row8(r,m,s) .. sum((i,h),alpha(r,i)*VQ(i,m,h,s)) =e= sum(n, VR(r,n,m,s));
+ 633   
+ 634  row9(i,m,s) .. sum(h, VQ(i,m,h,s))  =e= sum((w,k),VL(i,m,w,k,s)) + sum((j,k),VLLL(i,m,j,k,s));
+ 635   
+ 636  row10(i,w,s) .. sum((m,k),VL(i,m,w,k,s)) =e= sum((j,k),VLL(i,w,j,k,s));
+ 637   
+ 638  row11(i,j,s) .. sum((w,k),VLL(i,w,j,k,s)) + sum((m,k),VLLL(i,m,j,k,s)) + VO(i,j,s) =e= d(i,j,s);
+ 639   
+ 640  row12(m,w,k,s) .. lb(m,w,k)*VG(m,w,k,s) =l= sum(i,pp(i)*VL(i,m,w,k,s));
+ 641   
+ 642  row13(m,w,k,s) ..   sum(i,pp(i)*VL(i,m,w,k,s)) =l= ub(m,w,k) * VG(m,w,k,s);
+ 643   
+ 644  row14(w,j,k,s) .. lbb(w,j,k)*VGG(w,j,k,s) =l= sum(i,pp(i)*VLL(i,w,j,k,s));
+ 645   
+ 646  row15(w,j,k,s) ..  sum(i,pp(i)*VLL(i,w,j,k,s)) =l= ubb(w,j,k)*VGG(w,j,k,s);
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 12
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+C o m p i l a t i o n
+
+
+ 647   
+ 648  row16(m,j,k,s) ..  lbbb(m,j,k)*VGGG(m,j,k,s) =l= sum(i,pp(i)*VLLL(i,m,j,k,s));
+ 649   
+ 650  row17(m,j,k,s) ..  sum(i,pp(i)*VLLL(i,m,j,k,s)) =l= ubbb(m,j,k)*VGGG(m,j,k,s);
+ 651   
+ 652   
+ 653  Model supplychain / ALL /;
+ 654   
+ 655  solve supplychain using MIP minimizing z;
+ 656   
+ 657   
+ 658  display VF.l;
+ 659   
+ 660  display VFF.l;
+ 661   
+ 662  display VFFF.l;
+ 663   
+ 664  display VG.l;
+ 665   
+ 666  display VGG.l;
+ 667   
+ 668  display VGGG.l;
+ 669   
+ 670  display VQ.l;
+ 671  display VR.l;
+ 672  display VL.l;
+ 673  display VLL.l;
+ 674  display VLLL.l;
+ 675  display VO.l;
+ 676  display VE.l;
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 13
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /Users/renhongtao/gamsmodel/supply_chain_small/supplychain.gms
+     2       66 INCLUDE        1      66  ./Users/renhongtao/gamsmodel/supply_chain_small/data_pai.csv
+     3       76 INCLUDE        1      73  ./Users/renhongtao/gamsmodel/supply_chain_small/data_d.csv
+     4       91 INCLUDE        1      80  ./Users/renhongtao/gamsmodel/supply_chain_small/data_f.csv
+     5      106 INCLUDE        1      87  ./Users/renhongtao/gamsmodel/supply_chain_small/data_ff.csv
+     6      116 INCLUDE        1      93  ./Users/renhongtao/gamsmodel/supply_chain_small/data_fff.csv
+     7      125 INCLUDE        1     100  ./Users/renhongtao/gamsmodel/supply_chain_small/data_cm.csv
+     8      140 INCLUDE        1     107  ./Users/renhongtao/gamsmodel/supply_chain_small/data_cs.csv
+     9      155 INCLUDE        1     114  ./Users/renhongtao/gamsmodel/supply_chain_small/data_ct.csv
+    10      178 INCLUDE        1     121  ./Users/renhongtao/gamsmodel/supply_chain_small/data_ctt.csv
+    11      201 INCLUDE        1     128  ./Users/renhongtao/gamsmodel/supply_chain_small/data_cttt.csv
+    12      224 INCLUDE        1     135  ./Users/renhongtao/gamsmodel/supply_chain_small/data_p.csv
+    13      235 INCLUDE        1     142  ./Users/renhongtao/gamsmodel/supply_chain_small/data_pp.csv
+    14      244 INCLUDE        1     149  ./Users/renhongtao/gamsmodel/supply_chain_small/data_alpha.csv
+    15      255 INCLUDE        1     156  ./Users/renhongtao/gamsmodel/supply_chain_small/data_c.csv
+    16      270 INCLUDE        1     163  ./Users/renhongtao/gamsmodel/supply_chain_small/data_cc.csv
+    17      281 INCLUDE        1     170  ./Users/renhongtao/gamsmodel/supply_chain_small/data_ccc.csv
+    18      292 INCLUDE        1     177  ./Users/renhongtao/gamsmodel/supply_chain_small/data_lb.csv
+    19      307 INCLUDE        1     184  ./Users/renhongtao/gamsmodel/supply_chain_small/data_lbb.csv
+    20      322 INCLUDE        1     191  ./Users/renhongtao/gamsmodel/supply_chain_small/data_lbbb.csv
+    21      339 INCLUDE        1     200  ./Users/renhongtao/gamsmodel/supply_chain_small/data_ub.csv
+    22      354 INCLUDE        1     207  ./Users/renhongtao/gamsmodel/supply_chain_small/data_ubb.csv
+    23      369 INCLUDE        1     214  ./Users/renhongtao/gamsmodel/supply_chain_small/data_ubbb.csv
+    24      384 INCLUDE        1     221  ./Users/renhongtao/gamsmodel/supply_chain_small/data_em.csv
+    25      399 INCLUDE        1     228  ./Users/renhongtao/gamsmodel/supply_chain_small/data_et.csv
+    26      423 INCLUDE        1     236  ./Users/renhongtao/gamsmodel/supply_chain_small/data_ett.csv
+    27      448 INCLUDE        1     245  ./Users/renhongtao/gamsmodel/supply_chain_small/data_ettt.csv
+    28      472 INCLUDE        1     253  ./Users/renhongtao/gamsmodel/supply_chain_small/data_lt.csv
+    29      483 INCLUDE        1     260  ./Users/renhongtao/gamsmodel/supply_chain_small/data_ltt.csv
+    30      492 INCLUDE        1     267  ./Users/renhongtao/gamsmodel/supply_chain_small/data_pc.csv
+    31      503 INCLUDE        1     274  ./Users/renhongtao/gamsmodel/supply_chain_small/data_ps.csv
+
+
+COMPILATION TIME     =        0.006 SECONDS      3 MB  24.9.2 r64480 DEX-DEG
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 14
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Equation Listing    SOLVE supplychain Using MIP From line 655
+
+
+---- cost  =E=  objective function
+
+cost..  - 19.8*VQ(product1,New_South_Wales,green,s1) - 19.8*VQ(product1,New_South_Wales,green,s2) - 20.4*VQ(product1,New_South_Wales,green,s3) - 6.6*VQ(product1,New_South_Wales,pollutant,s1) - 6.6*VQ(product1,New_South_Wales,pollutant,s2)
+     
+      - 6.8*VQ(product1,New_South_Wales,pollutant,s3) - 19.8*VQ(product1,Victoria,green,s1) - 19.8*VQ(product1,Victoria,green,s2) - 20.4*VQ(product1,Victoria,green,s3) - 6.6*VQ(product1,Victoria,pollutant,s1) - 6.6*VQ(product1,Victoria,pollutant,s2)
+     
+      - 6.8*VQ(product1,Victoria,pollutant,s3) - 21.45*VQ(product2,New_South_Wales,green,s1) - 21.45*VQ(product2,New_South_Wales,green,s2) - 22.1*VQ(product2,New_South_Wales,green,s3) - 7.26*VQ(product2,New_South_Wales,pollutant,s1)
+     
+      - 7.26*VQ(product2,New_South_Wales,pollutant,s2) - 7.48*VQ(product2,New_South_Wales,pollutant,s3) - 21.45*VQ(product2,Victoria,green,s1) - 21.45*VQ(product2,Victoria,green,s2) - 22.1*VQ(product2,Victoria,green,s3)
+     
+      - 7.26*VQ(product2,Victoria,pollutant,s1) - 7.26*VQ(product2,Victoria,pollutant,s2) - 7.48*VQ(product2,Victoria,pollutant,s3) - 3.3*VR(r1,Queensland,New_South_Wales,s1) - 3.3*VR(r1,Queensland,New_South_Wales,s2)
+     
+      - 3.4*VR(r1,Queensland,New_South_Wales,s3) - 3.3*VR(r1,Queensland,Victoria,s1) - 3.3*VR(r1,Queensland,Victoria,s2) - 3.4*VR(r1,Queensland,Victoria,s3) - 3.3*VR(r1,South_Australia,New_South_Wales,s1) - 3.3*VR(r1,South_Australia,New_South_Wales,s2)
+     
+      - 3.4*VR(r1,South_Australia,New_South_Wales,s3) - 2.64*VR(r1,South_Australia,Victoria,s1) - 2.64*VR(r1,South_Australia,Victoria,s2) - 2.72*VR(r1,South_Australia,Victoria,s3) - 2.64*VR(r2,Queensland,New_South_Wales,s1)
+     
+      - 2.64*VR(r2,Queensland,New_South_Wales,s2) - 2.72*VR(r2,Queensland,New_South_Wales,s3) - 2.64*VR(r2,Queensland,Victoria,s1) - 2.64*VR(r2,Queensland,Victoria,s2) - 2.72*VR(r2,Queensland,Victoria,s3) - 2.64*VR(r2,South_Australia,New_South_Wales,s1)
+     
+      - 2.64*VR(r2,South_Australia,New_South_Wales,s2) - 2.72*VR(r2,South_Australia,New_South_Wales,s3) - 2.64*VR(r2,South_Australia,Victoria,s1) - 2.64*VR(r2,South_Australia,Victoria,s2) - 2.72*VR(r2,South_Australia,Victoria,s3)
+     
+      - 0.594*VL(product1,New_South_Wales,Victoria,train,s1) - 0.594*VL(product1,New_South_Wales,Victoria,train,s2) - 0.612*VL(product1,New_South_Wales,Victoria,train,s3) - 0.924*VL(product1,New_South_Wales,Victoria,airplane,s1)
+     
+      - 0.924*VL(product1,New_South_Wales,Victoria,airplane,s2) - 0.952*VL(product1,New_South_Wales,Victoria,airplane,s3) - 0.33*VL(product1,New_South_Wales,Western_Australia,train,s1) - 0.33*VL(product1,New_South_Wales,Western_Australia,train,s2)
+     
+      - 0.34*VL(product1,New_South_Wales,Western_Australia,train,s3) - 0.396*VL(product1,New_South_Wales,Western_Australia,airplane,s1) - 0.396*VL(product1,New_South_Wales,Western_Australia,airplane,s2)
+     
+      - 0.408*VL(product1,New_South_Wales,Western_Australia,airplane,s3) - 0.033*VL(product1,Victoria,Victoria,train,s1) - 0.033*VL(product1,Victoria,Victoria,train,s2) - 0.034*VL(product1,Victoria,Victoria,train,s3)
+     
+      - 0.033*VL(product1,Victoria,Victoria,airplane,s1) - 0.033*VL(product1,Victoria,Victoria,airplane,s2) - 0.034*VL(product1,Victoria,Victoria,airplane,s3) - 0.33*VL(product1,Victoria,Western_Australia,train,s1)
+     
+      - 0.33*VL(product1,Victoria,Western_Australia,train,s2) - 0.34*VL(product1,Victoria,Western_Australia,train,s3) - 0.396*VL(product1,Victoria,Western_Australia,airplane,s1) - 0.396*VL(product1,Victoria,Western_Australia,airplane,s2)
+     
+      - 0.408*VL(product1,Victoria,Western_Australia,airplane,s3) - 0.462*VL(product2,New_South_Wales,Victoria,train,s1) - 0.462*VL(product2,New_South_Wales,Victoria,train,s2) - 0.476*VL(product2,New_South_Wales,Victoria,train,s3)
+     
+      - 0.792*VL(product2,New_South_Wales,Victoria,airplane,s1) - 0.792*VL(product2,New_South_Wales,Victoria,airplane,s2) - 0.816*VL(product2,New_South_Wales,Victoria,airplane,s3) - 0.264*VL(product2,New_South_Wales,Western_Australia,train,s1)
+     
+      - 0.264*VL(product2,New_South_Wales,Western_Australia,train,s2) - 0.272*VL(product2,New_South_Wales,Western_Australia,train,s3) - 0.363*VL(product2,New_South_Wales,Western_Australia,airplane,s1)
+     
+      - 0.363*VL(product2,New_South_Wales,Western_Australia,airplane,s2) - 0.374*VL(product2,New_South_Wales,Western_Australia,airplane,s3) - 0.033*VL(product2,Victoria,Victoria,train,s1) - 0.033*VL(product2,Victoria,Victoria,train,s2)
+     
+      - 0.034*VL(product2,Victoria,Victoria,train,s3) - 0.033*VL(product2,Victoria,Victoria,airplane,s1) - 0.033*VL(product2,Victoria,Victoria,airplane,s2) - 0.034*VL(product2,Victoria,Victoria,airplane,s3)
+     
+      - 0.264*VL(product2,Victoria,Western_Australia,train,s1) - 0.264*VL(product2,Victoria,Western_Australia,train,s2) - 0.272*VL(product2,Victoria,Western_Australia,train,s3) - 0.363*VL(product2,Victoria,Western_Australia,airplane,s1)
+     
+      - 0.363*VL(product2,Victoria,Western_Australia,airplane,s2) - 0.374*VL(product2,Victoria,Western_Australia,airplane,s3) - 0.33*VLL(product1,Victoria,Queensland,train,s1) - 0.33*VLL(product1,Victoria,Queensland,train,s2)
+     
+      - 0.34*VLL(product1,Victoria,Queensland,train,s3) - 0.396*VLL(product1,Victoria,Queensland,airplane,s1) - 0.396*VLL(product1,Victoria,Queensland,airplane,s2) - 0.408*VLL(product1,Victoria,Queensland,airplane,s3)
+     
+      - 0.033*VLL(product1,Victoria,Victoria,train,s1) - 0.033*VLL(product1,Victoria,Victoria,train,s2) - 0.034*VLL(product1,Victoria,Victoria,train,s3) - 0.33*VLL(product1,Victoria,Victoria,airplane,s1) - 0.33*VLL(product1,Victoria,Victoria,airplane,s2)
+     
+      - 0.34*VLL(product1,Victoria,Victoria,airplane,s3) - 0.33*VLL(product1,Western_Australia,Queensland,train,s1) - 0.33*VLL(product1,Western_Australia,Queensland,train,s2) - 0.34*VLL(product1,Western_Australia,Queensland,train,s3)
+     
+      - 0.396*VLL(product1,Western_Australia,Queensland,airplane,s1) - 0.396*VLL(product1,Western_Australia,Queensland,airplane,s2) - 0.408*VLL(product1,Western_Australia,Queensland,airplane,s3) - 0.594*VLL(product1,Western_Australia,Victoria,train,s1)
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 15
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Equation Listing    SOLVE supplychain Using MIP From line 655
+
+
+     cost  =E=  objective function     
+     
+      - 0.594*VLL(product1,Western_Australia,Victoria,train,s2) - 0.612*VLL(product1,Western_Australia,Victoria,train,s3) - 0.924*VLL(product1,Western_Australia,Victoria,airplane,s1) - 0.924*VLL(product1,Western_Australia,Victoria,airplane,s2)
+     
+      - 0.952*VLL(product1,Western_Australia,Victoria,airplane,s3) - 0.264*VLL(product2,Victoria,Queensland,train,s1) - 0.264*VLL(product2,Victoria,Queensland,train,s2) - 0.272*VLL(product2,Victoria,Queensland,train,s3)
+     
+      - 0.363*VLL(product2,Victoria,Queensland,airplane,s1) - 0.363*VLL(product2,Victoria,Queensland,airplane,s2) - 0.374*VLL(product2,Victoria,Queensland,airplane,s3) - 0.033*VLL(product2,Victoria,Victoria,train,s1)
+     
+      - 0.033*VLL(product2,Victoria,Victoria,train,s2) - 0.034*VLL(product2,Victoria,Victoria,train,s3) - 0.33*VLL(product2,Victoria,Victoria,airplane,s1) - 0.33*VLL(product2,Victoria,Victoria,airplane,s2)
+     
+      - 0.34*VLL(product2,Victoria,Victoria,airplane,s3) - 0.264*VLL(product2,Western_Australia,Queensland,train,s1) - 0.264*VLL(product2,Western_Australia,Queensland,train,s2) - 0.272*VLL(product2,Western_Australia,Queensland,train,s3)
+     
+      - 0.363*VLL(product2,Western_Australia,Queensland,airplane,s1) - 0.363*VLL(product2,Western_Australia,Queensland,airplane,s2) - 0.374*VLL(product2,Western_Australia,Queensland,airplane,s3) - 0.462*VLL(product2,Western_Australia,Victoria,train,s1)
+     
+      - 0.462*VLL(product2,Western_Australia,Victoria,train,s2) - 0.476*VLL(product2,Western_Australia,Victoria,train,s3) - 0.792*VLL(product2,Western_Australia,Victoria,airplane,s1) - 0.792*VLL(product2,Western_Australia,Victoria,airplane,s2)
+     
+      - 0.816*VLL(product2,Western_Australia,Victoria,airplane,s3) - 0.33*VLLL(product1,New_South_Wales,Queensland,train,s1) - 0.33*VLLL(product1,New_South_Wales,Queensland,train,s2) - 0.34*VLLL(product1,New_South_Wales,Queensland,train,s3)
+     
+      - 0.396*VLLL(product1,New_South_Wales,Queensland,airplane,s1) - 0.396*VLLL(product1,New_South_Wales,Queensland,airplane,s2) - 0.408*VLLL(product1,New_South_Wales,Queensland,airplane,s3) - 0.594*VLLL(product1,New_South_Wales,Victoria,train,s1)
+     
+      - 0.594*VLLL(product1,New_South_Wales,Victoria,train,s2) - 0.612*VLLL(product1,New_South_Wales,Victoria,train,s3) - 0.924*VLLL(product1,New_South_Wales,Victoria,airplane,s1) - 0.924*VLLL(product1,New_South_Wales,Victoria,airplane,s2)
+     
+      - 0.952*VLLL(product1,New_South_Wales,Victoria,airplane,s3) - 0.33*VLLL(product1,Victoria,Queensland,train,s1) - 0.33*VLLL(product1,Victoria,Queensland,train,s2) - 0.34*VLLL(product1,Victoria,Queensland,train,s3)
+     
+      - 0.396*VLLL(product1,Victoria,Queensland,airplane,s1) - 0.396*VLLL(product1,Victoria,Queensland,airplane,s2) - 0.408*VLLL(product1,Victoria,Queensland,airplane,s3) - 0.033*VLLL(product1,Victoria,Victoria,train,s1)
+     
+      - 0.033*VLLL(product1,Victoria,Victoria,train,s2) - 0.034*VLLL(product1,Victoria,Victoria,train,s3) - 0.033*VLLL(product1,Victoria,Victoria,airplane,s1) - 0.033*VLLL(product1,Victoria,Victoria,airplane,s2)
+     
+      - 0.034*VLLL(product1,Victoria,Victoria,airplane,s3) - 0.264*VLLL(product2,New_South_Wales,Queensland,train,s1) - 0.264*VLLL(product2,New_South_Wales,Queensland,train,s2) - 0.272*VLLL(product2,New_South_Wales,Queensland,train,s3)
+     
+      - 0.363*VLLL(product2,New_South_Wales,Queensland,airplane,s1) - 0.363*VLLL(product2,New_South_Wales,Queensland,airplane,s2) - 0.374*VLLL(product2,New_South_Wales,Queensland,airplane,s3) - 0.462*VLLL(product2,New_South_Wales,Victoria,train,s1)
+     
+      - 0.462*VLLL(product2,New_South_Wales,Victoria,train,s2) - 0.476*VLLL(product2,New_South_Wales,Victoria,train,s3) - 0.792*VLLL(product2,New_South_Wales,Victoria,airplane,s1) - 0.792*VLLL(product2,New_South_Wales,Victoria,airplane,s2)
+     
+      - 0.816*VLLL(product2,New_South_Wales,Victoria,airplane,s3) - 0.264*VLLL(product2,Victoria,Queensland,train,s1) - 0.264*VLLL(product2,Victoria,Queensland,train,s2) - 0.272*VLLL(product2,Victoria,Queensland,train,s3)
+     
+      - 0.363*VLLL(product2,Victoria,Queensland,airplane,s1) - 0.363*VLLL(product2,Victoria,Queensland,airplane,s2) - 0.374*VLLL(product2,Victoria,Queensland,airplane,s3) - 0.033*VLLL(product2,Victoria,Victoria,train,s1)
+     
+      - 0.033*VLLL(product2,Victoria,Victoria,train,s2) - 0.034*VLLL(product2,Victoria,Victoria,train,s3) - 0.033*VLLL(product2,Victoria,Victoria,airplane,s1) - 0.033*VLLL(product2,Victoria,Victoria,airplane,s2)
+     
+      - 0.034*VLLL(product2,Victoria,Victoria,airplane,s3) - 3300*VO(product1,Queensland,s1) - 3300*VO(product1,Queensland,s2) - 3400*VO(product1,Queensland,s3) - 3300*VO(product1,Victoria,s1) - 3300*VO(product1,Victoria,s2)
+     
+      - 3400*VO(product1,Victoria,s3) - 2640*VO(product2,Queensland,s1) - 2640*VO(product2,Queensland,s2) - 2720*VO(product2,Queensland,s3) - 2640*VO(product2,Victoria,s1) - 2640*VO(product2,Victoria,s2) - 2720*VO(product2,Victoria,s3) - 99*VE(s2)
+     
+      - 340*VE(s3) - 1200*VF(New_South_Wales,green,small) - 2400*VF(New_South_Wales,green,large) - 1200*VF(New_South_Wales,pollutant,small) - 2400*VF(New_South_Wales,pollutant,large) - 600*VF(Victoria,green,small) - 1200*VF(Victoria,green,large)
+     
+      - 600*VF(Victoria,pollutant,small) - 1200*VF(Victoria,pollutant,large) - 600*VFF(Victoria,small) - 1200*VFF(Victoria,large) - 650*VFF(Western_Australia,small) - 1300*VFF(Western_Australia,large) - 1500*VFFF(Queensland) - 1000*VFFF(South_Australia)
+     
+      + z =E= 0 ; (LHS = 0)
+     
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 16
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Equation Listing    SOLVE supplychain Using MIP From line 655
+
+
+---- row1  =L=  (8) enforces the budget limitation for the establishment of manufacturing plants and warehouses
+
+row1..  12000*VF(New_South_Wales,green,small) + 24000*VF(New_South_Wales,green,large) + 6000*VF(New_South_Wales,pollutant,small) + 12000*VF(New_South_Wales,pollutant,large) + 6000*VF(Victoria,green,small) + 12000*VF(Victoria,green,large)
+     
+      + 3000*VF(Victoria,pollutant,small) + 6000*VF(Victoria,pollutant,large) + 6000*VFF(Victoria,small) + 12000*VFF(Victoria,large) + 6500*VFF(Western_Australia,small) + 13000*VFF(Western_Australia,large) =L= 300000 ; (LHS = 0)
+     
+
+---- row2  =E=  (9) ensure that no more than one facility can be established in each candidate location
+
+row2(New_South_Wales)..  VF(New_South_Wales,green,small) + VF(New_South_Wales,green,large) + VF(New_South_Wales,pollutant,small) + VF(New_South_Wales,pollutant,large) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+row2(Victoria)..  VF(Victoria,green,small) + VF(Victoria,green,large) + VF(Victoria,pollutant,small) + VF(Victoria,pollutant,large) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- row3  =E=  (10) ensure that no more than one facility can be established in each candidate location
+
+row3(Victoria)..  VFF(Victoria,small) + VFF(Victoria,large) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+row3(Western_Australia)..  VFF(Western_Australia,small) + VFF(Western_Australia,large) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- row4  =E=  (11) carbon credit limitation at each scenario by substracting the production and transport emissions from regular cap.
+
+row4(s1)..  0.6*VQ(product1,New_South_Wales,green,s1) + 0.2*VQ(product1,New_South_Wales,pollutant,s1) + 0.6*VQ(product1,Victoria,green,s1) + 0.6*VQ(product1,Victoria,pollutant,s1) + 0.6*VQ(product2,New_South_Wales,green,s1)
+     
+      + 0.3*VQ(product2,New_South_Wales,pollutant,s1) + 0.6*VQ(product2,Victoria,green,s1) + 0.2*VQ(product2,Victoria,pollutant,s1) + 0.1*VL(product1,New_South_Wales,Victoria,train,s1) + 0.4*VL(product1,New_South_Wales,Victoria,airplane,s1)
+     
+      + 0.15*VL(product1,New_South_Wales,Western_Australia,train,s1) + 0.4*VL(product1,New_South_Wales,Western_Australia,airplane,s1) + 0.01*VL(product1,Victoria,Victoria,train,s1) + 0.1*VL(product1,Victoria,Victoria,airplane,s1)
+     
+      + 0.11*VL(product1,Victoria,Western_Australia,train,s1) + 0.4*VL(product1,Victoria,Western_Australia,airplane,s1) + 0.1*VL(product2,New_South_Wales,Victoria,train,s1) + 0.3*VL(product2,New_South_Wales,Victoria,airplane,s1)
+     
+      + 0.1*VL(product2,New_South_Wales,Western_Australia,train,s1) + 0.2*VL(product2,New_South_Wales,Western_Australia,airplane,s1) + 0.01*VL(product2,Victoria,Victoria,train,s1) + 0.1*VL(product2,Victoria,Victoria,airplane,s1)
+     
+      + 0.1*VL(product2,Victoria,Western_Australia,train,s1) + 0.4*VL(product2,Victoria,Western_Australia,airplane,s1) + 0.1*VLL(product1,Victoria,Queensland,train,s1) + 0.2*VLL(product1,Victoria,Queensland,airplane,s1)
+     
+      + 0.01*VLL(product1,Victoria,Victoria,train,s1) + 0.1*VLL(product1,Victoria,Victoria,airplane,s1) + 0.1*VLL(product1,Western_Australia,Queensland,train,s1) + 0.3*VLL(product1,Western_Australia,Queensland,airplane,s1)
+     
+      + 0.1*VLL(product1,Western_Australia,Victoria,train,s1) + 0.3*VLL(product1,Western_Australia,Victoria,airplane,s1) + 0.1*VLL(product2,Victoria,Queensland,train,s1) + 0.3*VLL(product2,Victoria,Queensland,airplane,s1)
+     
+      + 0.01*VLL(product2,Victoria,Victoria,train,s1) + 0.1*VLL(product2,Victoria,Victoria,airplane,s1) + 0.1*VLL(product2,Western_Australia,Queensland,train,s1) + 0.3*VLL(product2,Western_Australia,Queensland,airplane,s1)
+     
+      + 0.1*VLL(product2,Western_Australia,Victoria,train,s1) + 0.3*VLL(product2,Western_Australia,Victoria,airplane,s1) + 0.1*VLLL(product1,New_South_Wales,Queensland,train,s1) + 0.3*VLLL(product1,New_South_Wales,Queensland,airplane,s1)
+     
+      + 0.1*VLLL(product1,New_South_Wales,Victoria,train,s1) + 0.3*VLLL(product1,New_South_Wales,Victoria,airplane,s1) + 0.1*VLLL(product1,Victoria,Queensland,train,s1) + 0.3*VLLL(product1,Victoria,Queensland,airplane,s1)
+     
+      + 0.01*VLLL(product1,Victoria,Victoria,train,s1) + 0.1*VLLL(product1,Victoria,Victoria,airplane,s1) + 0.1*VLLL(product2,New_South_Wales,Queensland,train,s1) + 0.3*VLLL(product2,New_South_Wales,Queensland,airplane,s1)
+     
+      + 0.1*VLLL(product2,New_South_Wales,Victoria,train,s1) + 0.3*VLLL(product2,New_South_Wales,Victoria,airplane,s1) + 0.1*VLLL(product2,Victoria,Queensland,train,s1) + 0.3*VLLL(product2,Victoria,Queensland,airplane,s1)
+     
+      + 0.01*VLLL(product2,Victoria,Victoria,train,s1) + 0.1*VLLL(product2,Victoria,Victoria,airplane,s1) - VE(s1) =E= 10000 ; (LHS = 0, INFES = 10000 ****)
+     
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 17
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Equation Listing    SOLVE supplychain Using MIP From line 655
+
+
+     row4  =E=  (11) carbon credit limitation at each scenario by substracting the production and transport emissions from regular cap.
+
+row4(s2)..  0.6*VQ(product1,New_South_Wales,green,s2) + 0.2*VQ(product1,New_South_Wales,pollutant,s2) + 0.6*VQ(product1,Victoria,green,s2) + 0.6*VQ(product1,Victoria,pollutant,s2) + 0.6*VQ(product2,New_South_Wales,green,s2)
+     
+      + 0.3*VQ(product2,New_South_Wales,pollutant,s2) + 0.6*VQ(product2,Victoria,green,s2) + 0.2*VQ(product2,Victoria,pollutant,s2) + 0.1*VL(product1,New_South_Wales,Victoria,train,s2) + 0.4*VL(product1,New_South_Wales,Victoria,airplane,s2)
+     
+      + 0.15*VL(product1,New_South_Wales,Western_Australia,train,s2) + 0.4*VL(product1,New_South_Wales,Western_Australia,airplane,s2) + 0.01*VL(product1,Victoria,Victoria,train,s2) + 0.1*VL(product1,Victoria,Victoria,airplane,s2)
+     
+      + 0.11*VL(product1,Victoria,Western_Australia,train,s2) + 0.4*VL(product1,Victoria,Western_Australia,airplane,s2) + 0.1*VL(product2,New_South_Wales,Victoria,train,s2) + 0.3*VL(product2,New_South_Wales,Victoria,airplane,s2)
+     
+      + 0.1*VL(product2,New_South_Wales,Western_Australia,train,s2) + 0.2*VL(product2,New_South_Wales,Western_Australia,airplane,s2) + 0.01*VL(product2,Victoria,Victoria,train,s2) + 0.1*VL(product2,Victoria,Victoria,airplane,s2)
+     
+      + 0.1*VL(product2,Victoria,Western_Australia,train,s2) + 0.4*VL(product2,Victoria,Western_Australia,airplane,s2) + 0.1*VLL(product1,Victoria,Queensland,train,s2) + 0.2*VLL(product1,Victoria,Queensland,airplane,s2)
+     
+      + 0.01*VLL(product1,Victoria,Victoria,train,s2) + 0.1*VLL(product1,Victoria,Victoria,airplane,s2) + 0.1*VLL(product1,Western_Australia,Queensland,train,s2) + 0.3*VLL(product1,Western_Australia,Queensland,airplane,s2)
+     
+      + 0.1*VLL(product1,Western_Australia,Victoria,train,s2) + 0.3*VLL(product1,Western_Australia,Victoria,airplane,s2) + 0.1*VLL(product2,Victoria,Queensland,train,s2) + 0.3*VLL(product2,Victoria,Queensland,airplane,s2)
+     
+      + 0.01*VLL(product2,Victoria,Victoria,train,s2) + 0.1*VLL(product2,Victoria,Victoria,airplane,s2) + 0.1*VLL(product2,Western_Australia,Queensland,train,s2) + 0.3*VLL(product2,Western_Australia,Queensland,airplane,s2)
+     
+      + 0.1*VLL(product2,Western_Australia,Victoria,train,s2) + 0.3*VLL(product2,Western_Australia,Victoria,airplane,s2) + 0.1*VLLL(product1,New_South_Wales,Queensland,train,s2) + 0.3*VLLL(product1,New_South_Wales,Queensland,airplane,s2)
+     
+      + 0.1*VLLL(product1,New_South_Wales,Victoria,train,s2) + 0.3*VLLL(product1,New_South_Wales,Victoria,airplane,s2) + 0.1*VLLL(product1,Victoria,Queensland,train,s2) + 0.3*VLLL(product1,Victoria,Queensland,airplane,s2)
+     
+      + 0.01*VLLL(product1,Victoria,Victoria,train,s2) + 0.1*VLLL(product1,Victoria,Victoria,airplane,s2) + 0.1*VLLL(product2,New_South_Wales,Queensland,train,s2) + 0.3*VLLL(product2,New_South_Wales,Queensland,airplane,s2)
+     
+      + 0.1*VLLL(product2,New_South_Wales,Victoria,train,s2) + 0.3*VLLL(product2,New_South_Wales,Victoria,airplane,s2) + 0.1*VLLL(product2,Victoria,Queensland,train,s2) + 0.3*VLLL(product2,Victoria,Queensland,airplane,s2)
+     
+      + 0.01*VLLL(product2,Victoria,Victoria,train,s2) + 0.1*VLLL(product2,Victoria,Victoria,airplane,s2) - VE(s2) =E= 10000 ; (LHS = 0, INFES = 10000 ****)
+     
+row4(s3)..  0.6*VQ(product1,New_South_Wales,green,s3) + 0.2*VQ(product1,New_South_Wales,pollutant,s3) + 0.6*VQ(product1,Victoria,green,s3) + 0.6*VQ(product1,Victoria,pollutant,s3) + 0.6*VQ(product2,New_South_Wales,green,s3)
+     
+      + 0.3*VQ(product2,New_South_Wales,pollutant,s3) + 0.6*VQ(product2,Victoria,green,s3) + 0.2*VQ(product2,Victoria,pollutant,s3) + 0.1*VL(product1,New_South_Wales,Victoria,train,s3) + 0.4*VL(product1,New_South_Wales,Victoria,airplane,s3)
+     
+      + 0.15*VL(product1,New_South_Wales,Western_Australia,train,s3) + 0.4*VL(product1,New_South_Wales,Western_Australia,airplane,s3) + 0.01*VL(product1,Victoria,Victoria,train,s3) + 0.1*VL(product1,Victoria,Victoria,airplane,s3)
+     
+      + 0.11*VL(product1,Victoria,Western_Australia,train,s3) + 0.4*VL(product1,Victoria,Western_Australia,airplane,s3) + 0.1*VL(product2,New_South_Wales,Victoria,train,s3) + 0.3*VL(product2,New_South_Wales,Victoria,airplane,s3)
+     
+      + 0.1*VL(product2,New_South_Wales,Western_Australia,train,s3) + 0.2*VL(product2,New_South_Wales,Western_Australia,airplane,s3) + 0.01*VL(product2,Victoria,Victoria,train,s3) + 0.1*VL(product2,Victoria,Victoria,airplane,s3)
+     
+      + 0.1*VL(product2,Victoria,Western_Australia,train,s3) + 0.4*VL(product2,Victoria,Western_Australia,airplane,s3) + 0.1*VLL(product1,Victoria,Queensland,train,s3) + 0.2*VLL(product1,Victoria,Queensland,airplane,s3)
+     
+      + 0.01*VLL(product1,Victoria,Victoria,train,s3) + 0.1*VLL(product1,Victoria,Victoria,airplane,s3) + 0.1*VLL(product1,Western_Australia,Queensland,train,s3) + 0.3*VLL(product1,Western_Australia,Queensland,airplane,s3)
+     
+      + 0.1*VLL(product1,Western_Australia,Victoria,train,s3) + 0.3*VLL(product1,Western_Australia,Victoria,airplane,s3) + 0.1*VLL(product2,Victoria,Queensland,train,s3) + 0.3*VLL(product2,Victoria,Queensland,airplane,s3)
+     
+      + 0.01*VLL(product2,Victoria,Victoria,train,s3) + 0.1*VLL(product2,Victoria,Victoria,airplane,s3) + 0.1*VLL(product2,Western_Australia,Queensland,train,s3) + 0.3*VLL(product2,Western_Australia,Queensland,airplane,s3)
+     
+      + 0.1*VLL(product2,Western_Australia,Victoria,train,s3) + 0.3*VLL(product2,Western_Australia,Victoria,airplane,s3) + 0.1*VLLL(product1,New_South_Wales,Queensland,train,s3) + 0.3*VLLL(product1,New_South_Wales,Queensland,airplane,s3)
+     
+      + 0.1*VLLL(product1,New_South_Wales,Victoria,train,s3) + 0.3*VLLL(product1,New_South_Wales,Victoria,airplane,s3) + 0.1*VLLL(product1,Victoria,Queensland,train,s3) + 0.3*VLLL(product1,Victoria,Queensland,airplane,s3)
+     
+      + 0.01*VLLL(product1,Victoria,Victoria,train,s3) + 0.1*VLLL(product1,Victoria,Victoria,airplane,s3) + 0.1*VLLL(product2,New_South_Wales,Queensland,train,s3) + 0.3*VLLL(product2,New_South_Wales,Queensland,airplane,s3)
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 18
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Equation Listing    SOLVE supplychain Using MIP From line 655
+
+
+     row4  =E=  (11) carbon credit limitation at each scenario by substracting the production and transport emissions from regular cap.     
+     
+      + 0.1*VLLL(product2,New_South_Wales,Victoria,train,s3) + 0.3*VLLL(product2,New_South_Wales,Victoria,airplane,s3) + 0.1*VLLL(product2,Victoria,Queensland,train,s3) + 0.3*VLLL(product2,Victoria,Queensland,airplane,s3)
+     
+      + 0.01*VLLL(product2,Victoria,Victoria,train,s3) + 0.1*VLLL(product2,Victoria,Victoria,airplane,s3) - VE(s3) =E= 10000 ; (LHS = 0, INFES = 10000 ****)
+     
+
+---- row5  =L=  (12) enforce the capacity limitation of the manufacturing plants
+
+row5(New_South_Wales,green,s1)..  8*VQ(product1,New_South_Wales,green,s1) + 6*VQ(product2,New_South_Wales,green,s1) - 10000000*VF(New_South_Wales,green,small) - 12000000*VF(New_South_Wales,green,large) =L= 0 ; (LHS = 0)
+     
+row5(New_South_Wales,green,s2)..  8*VQ(product1,New_South_Wales,green,s2) + 6*VQ(product2,New_South_Wales,green,s2) - 10000000*VF(New_South_Wales,green,small) - 12000000*VF(New_South_Wales,green,large) =L= 0 ; (LHS = 0)
+     
+row5(New_South_Wales,green,s3)..  8*VQ(product1,New_South_Wales,green,s3) + 6*VQ(product2,New_South_Wales,green,s3) - 10000000*VF(New_South_Wales,green,small) - 12000000*VF(New_South_Wales,green,large) =L= 0 ; (LHS = 0)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- row7  =L=  (14) formulates the limitation in raw material provision by suppliers
+
+row7(r1,Queensland,s1)..  VR(r1,Queensland,New_South_Wales,s1) + VR(r1,Queensland,Victoria,s1) - 400000*VFFF(Queensland) =L= 0 ; (LHS = 0)
+     
+row7(r1,Queensland,s2)..  VR(r1,Queensland,New_South_Wales,s2) + VR(r1,Queensland,Victoria,s2) - 400000*VFFF(Queensland) =L= 0 ; (LHS = 0)
+     
+row7(r1,Queensland,s3)..  VR(r1,Queensland,New_South_Wales,s3) + VR(r1,Queensland,Victoria,s3) - 400000*VFFF(Queensland) =L= 0 ; (LHS = 0)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- row8  =E=  (15) guarantees the fulfillment of raw material requirement in the manufacturing plants
+
+row8(r1,New_South_Wales,s1)..  VQ(product1,New_South_Wales,green,s1) + VQ(product1,New_South_Wales,pollutant,s1) + VQ(product2,New_South_Wales,green,s1) + VQ(product2,New_South_Wales,pollutant,s1) - VR(r1,Queensland,New_South_Wales,s1)
+     
+      - VR(r1,South_Australia,New_South_Wales,s1) =E= 0 ; (LHS = 0)
+     
+row8(r1,New_South_Wales,s2)..  VQ(product1,New_South_Wales,green,s2) + VQ(product1,New_South_Wales,pollutant,s2) + VQ(product2,New_South_Wales,green,s2) + VQ(product2,New_South_Wales,pollutant,s2) - VR(r1,Queensland,New_South_Wales,s2)
+     
+      - VR(r1,South_Australia,New_South_Wales,s2) =E= 0 ; (LHS = 0)
+     
+row8(r1,New_South_Wales,s3)..  VQ(product1,New_South_Wales,green,s3) + VQ(product1,New_South_Wales,pollutant,s3) + VQ(product2,New_South_Wales,green,s3) + VQ(product2,New_South_Wales,pollutant,s3) - VR(r1,Queensland,New_South_Wales,s3)
+     
+      - VR(r1,South_Australia,New_South_Wales,s3) =E= 0 ; (LHS = 0)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- row9  =E=  (16) enforce the flow balance in manufacturing plant
+
+row9(product1,New_South_Wales,s1)..  VQ(product1,New_South_Wales,green,s1) + VQ(product1,New_South_Wales,pollutant,s1) - VL(product1,New_South_Wales,Victoria,train,s1) - VL(product1,New_South_Wales,Victoria,airplane,s1)
+     
+      - VL(product1,New_South_Wales,Western_Australia,train,s1) - VL(product1,New_South_Wales,Western_Australia,airplane,s1) - VLLL(product1,New_South_Wales,Queensland,train,s1) - VLLL(product1,New_South_Wales,Queensland,airplane,s1)
+     
+      - VLLL(product1,New_South_Wales,Victoria,train,s1) - VLLL(product1,New_South_Wales,Victoria,airplane,s1) =E= 0 ; (LHS = 0)
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 19
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Equation Listing    SOLVE supplychain Using MIP From line 655
+
+
+     row9  =E=  (16) enforce the flow balance in manufacturing plant
+
+row9(product1,New_South_Wales,s2)..  VQ(product1,New_South_Wales,green,s2) + VQ(product1,New_South_Wales,pollutant,s2) - VL(product1,New_South_Wales,Victoria,train,s2) - VL(product1,New_South_Wales,Victoria,airplane,s2)
+     
+      - VL(product1,New_South_Wales,Western_Australia,train,s2) - VL(product1,New_South_Wales,Western_Australia,airplane,s2) - VLLL(product1,New_South_Wales,Queensland,train,s2) - VLLL(product1,New_South_Wales,Queensland,airplane,s2)
+     
+      - VLLL(product1,New_South_Wales,Victoria,train,s2) - VLLL(product1,New_South_Wales,Victoria,airplane,s2) =E= 0 ; (LHS = 0)
+     
+row9(product1,New_South_Wales,s3)..  VQ(product1,New_South_Wales,green,s3) + VQ(product1,New_South_Wales,pollutant,s3) - VL(product1,New_South_Wales,Victoria,train,s3) - VL(product1,New_South_Wales,Victoria,airplane,s3)
+     
+      - VL(product1,New_South_Wales,Western_Australia,train,s3) - VL(product1,New_South_Wales,Western_Australia,airplane,s3) - VLLL(product1,New_South_Wales,Queensland,train,s3) - VLLL(product1,New_South_Wales,Queensland,airplane,s3)
+     
+      - VLLL(product1,New_South_Wales,Victoria,train,s3) - VLLL(product1,New_South_Wales,Victoria,airplane,s3) =E= 0 ; (LHS = 0)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- row10  =E=  (17) enforce the flow balance in warehouse
+
+row10(product1,Victoria,s1)..  VL(product1,New_South_Wales,Victoria,train,s1) + VL(product1,New_South_Wales,Victoria,airplane,s1) + VL(product1,Victoria,Victoria,train,s1) + VL(product1,Victoria,Victoria,airplane,s1)
+     
+      - VLL(product1,Victoria,Queensland,train,s1) - VLL(product1,Victoria,Queensland,airplane,s1) - VLL(product1,Victoria,Victoria,train,s1) - VLL(product1,Victoria,Victoria,airplane,s1) =E= 0 ; (LHS = 0)
+     
+row10(product1,Victoria,s2)..  VL(product1,New_South_Wales,Victoria,train,s2) + VL(product1,New_South_Wales,Victoria,airplane,s2) + VL(product1,Victoria,Victoria,train,s2) + VL(product1,Victoria,Victoria,airplane,s2)
+     
+      - VLL(product1,Victoria,Queensland,train,s2) - VLL(product1,Victoria,Queensland,airplane,s2) - VLL(product1,Victoria,Victoria,train,s2) - VLL(product1,Victoria,Victoria,airplane,s2) =E= 0 ; (LHS = 0)
+     
+row10(product1,Victoria,s3)..  VL(product1,New_South_Wales,Victoria,train,s3) + VL(product1,New_South_Wales,Victoria,airplane,s3) + VL(product1,Victoria,Victoria,train,s3) + VL(product1,Victoria,Victoria,airplane,s3)
+     
+      - VLL(product1,Victoria,Queensland,train,s3) - VLL(product1,Victoria,Queensland,airplane,s3) - VLL(product1,Victoria,Victoria,train,s3) - VLL(product1,Victoria,Victoria,airplane,s3) =E= 0 ; (LHS = 0)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- row11  =E=  (18) enforce the flow balance in end-user
+
+row11(product1,Queensland,s1)..  VLL(product1,Victoria,Queensland,train,s1) + VLL(product1,Victoria,Queensland,airplane,s1) + VLL(product1,Western_Australia,Queensland,train,s1) + VLL(product1,Western_Australia,Queensland,airplane,s1)
+     
+      + VLLL(product1,New_South_Wales,Queensland,train,s1) + VLLL(product1,New_South_Wales,Queensland,airplane,s1) + VLLL(product1,Victoria,Queensland,train,s1) + VLLL(product1,Victoria,Queensland,airplane,s1) + VO(product1,Queensland,s1) =E= 400000 ;
+     
+      (LHS = 0, INFES = 400000 ****)
+     
+row11(product1,Queensland,s2)..  VLL(product1,Victoria,Queensland,train,s2) + VLL(product1,Victoria,Queensland,airplane,s2) + VLL(product1,Western_Australia,Queensland,train,s2) + VLL(product1,Western_Australia,Queensland,airplane,s2)
+     
+      + VLLL(product1,New_South_Wales,Queensland,train,s2) + VLLL(product1,New_South_Wales,Queensland,airplane,s2) + VLLL(product1,Victoria,Queensland,train,s2) + VLLL(product1,Victoria,Queensland,airplane,s2) + VO(product1,Queensland,s2) =E= 400000 ;
+     
+      (LHS = 0, INFES = 400000 ****)
+     
+row11(product1,Queensland,s3)..  VLL(product1,Victoria,Queensland,train,s3) + VLL(product1,Victoria,Queensland,airplane,s3) + VLL(product1,Western_Australia,Queensland,train,s3) + VLL(product1,Western_Australia,Queensland,airplane,s3)
+     
+      + VLLL(product1,New_South_Wales,Queensland,train,s3) + VLLL(product1,New_South_Wales,Queensland,airplane,s3) + VLLL(product1,Victoria,Queensland,train,s3) + VLLL(product1,Victoria,Queensland,airplane,s3) + VO(product1,Queensland,s3) =E= 0 ;
+     
+      (LHS = 0)
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 20
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Equation Listing    SOLVE supplychain Using MIP From line 655
+
+
+     row11  =E=  (18) enforce the flow balance in end-user
+
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- row12  =L=  (19)  impose the product flow limitations between different supply chain participants
+
+row12(New_South_Wales,Victoria,train,s1)..  - 6*VL(product1,New_South_Wales,Victoria,train,s1) - 2*VL(product2,New_South_Wales,Victoria,train,s1) + VG(New_South_Wales,Victoria,train,s1) =L= 0 ; (LHS = 0)
+     
+row12(New_South_Wales,Victoria,train,s2)..  - 6*VL(product1,New_South_Wales,Victoria,train,s2) - 2*VL(product2,New_South_Wales,Victoria,train,s2) + VG(New_South_Wales,Victoria,train,s2) =L= 0 ; (LHS = 0)
+     
+row12(New_South_Wales,Victoria,train,s3)..  - 6*VL(product1,New_South_Wales,Victoria,train,s3) - 2*VL(product2,New_South_Wales,Victoria,train,s3) + VG(New_South_Wales,Victoria,train,s3) =L= 0 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+
+---- row13  =L=  (19)  impose the product flow limitations between different supply chain participants1
+
+row13(New_South_Wales,Victoria,train,s1)..  6*VL(product1,New_South_Wales,Victoria,train,s1) + 2*VL(product2,New_South_Wales,Victoria,train,s1) - 1000000*VG(New_South_Wales,Victoria,train,s1) =L= 0 ; (LHS = 0)
+     
+row13(New_South_Wales,Victoria,train,s2)..  6*VL(product1,New_South_Wales,Victoria,train,s2) + 2*VL(product2,New_South_Wales,Victoria,train,s2) - 1000000*VG(New_South_Wales,Victoria,train,s2) =L= 0 ; (LHS = 0)
+     
+row13(New_South_Wales,Victoria,train,s3)..  6*VL(product1,New_South_Wales,Victoria,train,s3) + 2*VL(product2,New_South_Wales,Victoria,train,s3) - 1000000*VG(New_South_Wales,Victoria,train,s3) =L= 0 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+
+---- row14  =L=  (20) mpose the product flow limitations between different supply chain participants
+
+row14(Victoria,Queensland,train,s1)..  - 6*VLL(product1,Victoria,Queensland,train,s1) - 2*VLL(product2,Victoria,Queensland,train,s1) + VGG(Victoria,Queensland,train,s1) =L= 0 ; (LHS = 0)
+     
+row14(Victoria,Queensland,train,s2)..  - 6*VLL(product1,Victoria,Queensland,train,s2) - 2*VLL(product2,Victoria,Queensland,train,s2) + VGG(Victoria,Queensland,train,s2) =L= 0 ; (LHS = 0)
+     
+row14(Victoria,Queensland,train,s3)..  - 6*VLL(product1,Victoria,Queensland,train,s3) - 2*VLL(product2,Victoria,Queensland,train,s3) + VGG(Victoria,Queensland,train,s3) =L= 0 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+
+---- row15  =L=  (20) mpose the product flow limitations between different supply chain participants1
+
+row15(Victoria,Queensland,train,s1)..  6*VLL(product1,Victoria,Queensland,train,s1) + 2*VLL(product2,Victoria,Queensland,train,s1) - 100000*VGG(Victoria,Queensland,train,s1) =L= 0 ; (LHS = 0)
+     
+row15(Victoria,Queensland,train,s2)..  6*VLL(product1,Victoria,Queensland,train,s2) + 2*VLL(product2,Victoria,Queensland,train,s2) - 100000*VGG(Victoria,Queensland,train,s2) =L= 0 ; (LHS = 0)
+     
+row15(Victoria,Queensland,train,s3)..  6*VLL(product1,Victoria,Queensland,train,s3) + 2*VLL(product2,Victoria,Queensland,train,s3) - 100000*VGG(Victoria,Queensland,train,s3) =L= 0 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 21
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Equation Listing    SOLVE supplychain Using MIP From line 655
+
+
+---- row16  =L=  (21) mpose the product flow limitations between different supply chain participants
+
+row16(New_South_Wales,Queensland,train,s1)..  - 6*VLLL(product1,New_South_Wales,Queensland,train,s1) - 2*VLLL(product2,New_South_Wales,Queensland,train,s1) + VGGG(New_South_Wales,Queensland,train,s1) =L= 0 ; (LHS = 0)
+     
+row16(New_South_Wales,Queensland,train,s2)..  - 6*VLLL(product1,New_South_Wales,Queensland,train,s2) - 2*VLLL(product2,New_South_Wales,Queensland,train,s2) + VGGG(New_South_Wales,Queensland,train,s2) =L= 0 ; (LHS = 0)
+     
+row16(New_South_Wales,Queensland,train,s3)..  - 6*VLLL(product1,New_South_Wales,Queensland,train,s3) - 2*VLLL(product2,New_South_Wales,Queensland,train,s3) + VGGG(New_South_Wales,Queensland,train,s3) =L= 0 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+
+---- row17  =L=  (21) mpose the product flow limitations between different supply chain participants1
+
+row17(New_South_Wales,Queensland,train,s1)..  6*VLLL(product1,New_South_Wales,Queensland,train,s1) + 2*VLLL(product2,New_South_Wales,Queensland,train,s1) - 100000*VGGG(New_South_Wales,Queensland,train,s1) =L= 0 ; (LHS = 0)
+     
+row17(New_South_Wales,Queensland,train,s2)..  6*VLLL(product1,New_South_Wales,Queensland,train,s2) + 2*VLLL(product2,New_South_Wales,Queensland,train,s2) - 100000*VGGG(New_South_Wales,Queensland,train,s2) =L= 0 ; (LHS = 0)
+     
+row17(New_South_Wales,Queensland,train,s3)..  6*VLLL(product1,New_South_Wales,Queensland,train,s3) + 2*VLLL(product2,New_South_Wales,Queensland,train,s3) - 100000*VGGG(New_South_Wales,Queensland,train,s3) =L= 0 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 22
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Column Listing      SOLVE supplychain Using MIP From line 655
+
+
+---- VQ  amount of product i produced in plant m with technology h in scenario s
+
+VQ(product1,New_South_Wales,green,s1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -19.8     cost
+        0.6     row4(s1)
+        8       row5(New_South_Wales,green,s1)
+        1       row8(r1,New_South_Wales,s1)
+        1       row8(r2,New_South_Wales,s1)
+        1       row9(product1,New_South_Wales,s1)
+
+VQ(product1,New_South_Wales,green,s2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -19.8     cost
+        0.6     row4(s2)
+        8       row5(New_South_Wales,green,s2)
+        1       row8(r1,New_South_Wales,s2)
+        1       row8(r2,New_South_Wales,s2)
+        1       row9(product1,New_South_Wales,s2)
+
+VQ(product1,New_South_Wales,green,s3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -20.4     cost
+        0.6     row4(s3)
+        8       row5(New_South_Wales,green,s3)
+        1       row8(r1,New_South_Wales,s3)
+        1       row8(r2,New_South_Wales,s3)
+        1       row9(product1,New_South_Wales,s3)
+
+REMAINING 21 ENTRIES SKIPPED
+
+---- VR  amount of raw material r shipped from supplier n to plant m in scenario s
+
+VR(r1,Queensland,New_South_Wales,s1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -3.3     cost
+        1       row7(r1,Queensland,s1)
+       -1       row8(r1,New_South_Wales,s1)
+
+VR(r1,Queensland,New_South_Wales,s2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -3.3     cost
+        1       row7(r1,Queensland,s2)
+       -1       row8(r1,New_South_Wales,s2)
+
+VR(r1,Queensland,New_South_Wales,s3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -3.4     cost
+        1       row7(r1,Queensland,s3)
+       -1       row8(r1,New_South_Wales,s3)
+
+REMAINING 21 ENTRIES SKIPPED
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 23
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Column Listing      SOLVE supplychain Using MIP From line 655
+
+
+---- VL  amount of product i shipped from plant m to warehouse w through technology k in scenario s
+
+VL(product1,New_South_Wales,Victoria,train,s1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.594   cost
+        0.1     row4(s1)
+       -1       row9(product1,New_South_Wales,s1)
+        1       row10(product1,Victoria,s1)
+       -6       row12(New_South_Wales,Victoria,train,s1)
+        6       row13(New_South_Wales,Victoria,train,s1)
+
+VL(product1,New_South_Wales,Victoria,train,s2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.594   cost
+        0.1     row4(s2)
+       -1       row9(product1,New_South_Wales,s2)
+        1       row10(product1,Victoria,s2)
+       -6       row12(New_South_Wales,Victoria,train,s2)
+        6       row13(New_South_Wales,Victoria,train,s2)
+
+VL(product1,New_South_Wales,Victoria,train,s3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.612   cost
+        0.1     row4(s3)
+       -1       row9(product1,New_South_Wales,s3)
+        1       row10(product1,Victoria,s3)
+       -6       row12(New_South_Wales,Victoria,train,s3)
+        6       row13(New_South_Wales,Victoria,train,s3)
+
+REMAINING 45 ENTRIES SKIPPED
+
+---- VLL  amount of product i shipped from warehouse w through technology k in scenario s
+
+VLL(product1,Victoria,Queensland,train,s1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.33    cost
+        0.1     row4(s1)
+       -1       row10(product1,Victoria,s1)
+        1       row11(product1,Queensland,s1)
+       -6       row14(Victoria,Queensland,train,s1)
+        6       row15(Victoria,Queensland,train,s1)
+
+VLL(product1,Victoria,Queensland,train,s2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.33    cost
+        0.1     row4(s2)
+       -1       row10(product1,Victoria,s2)
+        1       row11(product1,Queensland,s2)
+       -6       row14(Victoria,Queensland,train,s2)
+        6       row15(Victoria,Queensland,train,s2)
+
+VLL(product1,Victoria,Queensland,train,s3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 24
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Column Listing      SOLVE supplychain Using MIP From line 655
+
+
+     VLL  amount of product i shipped from warehouse w through technology k in scenario s
+
+       -0.34    cost
+        0.1     row4(s3)
+       -1       row10(product1,Victoria,s3)
+        1       row11(product1,Queensland,s3)
+       -6       row14(Victoria,Queensland,train,s3)
+        6       row15(Victoria,Queensland,train,s3)
+
+REMAINING 45 ENTRIES SKIPPED
+
+---- VLLL  amount of product i shipped from plant m to end-user j through technology k in scenario s
+
+VLLL(product1,New_South_Wales,Queensland,train,s1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.33    cost
+        0.1     row4(s1)
+       -1       row9(product1,New_South_Wales,s1)
+        1       row11(product1,Queensland,s1)
+       -6       row16(New_South_Wales,Queensland,train,s1)
+        6       row17(New_South_Wales,Queensland,train,s1)
+
+VLLL(product1,New_South_Wales,Queensland,train,s2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.33    cost
+        0.1     row4(s2)
+       -1       row9(product1,New_South_Wales,s2)
+        1       row11(product1,Queensland,s2)
+       -6       row16(New_South_Wales,Queensland,train,s2)
+        6       row17(New_South_Wales,Queensland,train,s2)
+
+VLLL(product1,New_South_Wales,Queensland,train,s3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.34    cost
+        0.1     row4(s3)
+       -1       row9(product1,New_South_Wales,s3)
+        1       row11(product1,Queensland,s3)
+       -6       row16(New_South_Wales,Queensland,train,s3)
+        6       row17(New_South_Wales,Queensland,train,s3)
+
+REMAINING 45 ENTRIES SKIPPED
+
+---- VO  amount of shortage for product i in end-user j in scenario s
+
+VO(product1,Queensland,s1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+    -3300       cost
+        1       row11(product1,Queensland,s1)
+
+VO(product1,Queensland,s2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+    -3300       cost
+        1       row11(product1,Queensland,s2)
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 25
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Column Listing      SOLVE supplychain Using MIP From line 655
+
+
+     VO  amount of shortage for product i in end-user j in scenario s
+
+
+VO(product1,Queensland,s3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+    -3400       cost
+        1       row11(product1,Queensland,s3)
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- VE  Net number of carbon credits traded in scenario s
+
+VE(s1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       row4(s1)
+
+VE(s2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+      -99       cost
+       -1       row4(s2)
+
+VE(s3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+     -340       cost
+       -1       row4(s3)
+
+
+---- VF  1 if manufacturing plant m with technology h and capacity u is estimated 0 otherwise
+
+VF(New_South_Wales,green,small)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -1200       cost
+    12000       row1
+        1       row2(New_South_Wales)
+  -1.000000E+7  row5(New_South_Wales,green,s1)
+  -1.000000E+7  row5(New_South_Wales,green,s2)
+  -1.000000E+7  row5(New_South_Wales,green,s3)
+
+VF(New_South_Wales,green,large)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -2400       cost
+    24000       row1
+        1       row2(New_South_Wales)
+  -1.200000E+7  row5(New_South_Wales,green,s1)
+  -1.200000E+7  row5(New_South_Wales,green,s2)
+  -1.200000E+7  row5(New_South_Wales,green,s3)
+
+VF(New_South_Wales,pollutant,small)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -1200       cost
+     6000       row1
+        1       row2(New_South_Wales)
+  -8.000000E+6  row5(New_South_Wales,pollutant,s1)
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 26
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Column Listing      SOLVE supplychain Using MIP From line 655
+
+
+     VF  1 if manufacturing plant m with technology h and capacity u is estimated 0 otherwise
+
+  -8.000000E+6  row5(New_South_Wales,pollutant,s2)
+  -8.000000E+6  row5(New_South_Wales,pollutant,s3)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- VFF  1 if warehouse w with capacity level v is estimated, 0 otherwise
+
+VFF(Victoria,small)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     -600       cost
+     6000       row1
+        1       row3(Victoria)
+
+VFF(Victoria,large)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -1200       cost
+    12000       row1
+        1       row3(Victoria)
+
+VFF(Western_Australia,small)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     -650       cost
+     6500       row1
+        1       row3(Western_Australia)
+
+REMAINING ENTRY SKIPPED
+
+---- VFFF  1 if supplier n is selected, 0 otherwise
+
+VFFF(Queensland)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -1500       cost
+  -400000       row7(r1,Queensland,s1)
+  -400000       row7(r1,Queensland,s2)
+  -400000       row7(r1,Queensland,s3)
+  -400000       row7(r2,Queensland,s1)
+  -400000       row7(r2,Queensland,s2)
+  -400000       row7(r2,Queensland,s3)
+
+VFFF(South_Australia)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -1000       cost
+  -1.200000E+6  row7(r1,South_Australia,s1)
+  -1.200000E+6  row7(r1,South_Australia,s2)
+  -1.200000E+6  row7(r1,South_Australia,s3)
+  -1.200000E+6  row7(r2,South_Australia,s1)
+  -1.200000E+6  row7(r2,South_Australia,s2)
+  -1.200000E+6  row7(r2,South_Australia,s3)
+
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 27
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Column Listing      SOLVE supplychain Using MIP From line 655
+
+
+---- VG  1 if there is a flow between plant m and warehouse w through mode k in scenario s , 0 otherwise
+
+VG(New_South_Wales,Victoria,train,s1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       row12(New_South_Wales,Victoria,train,s1)
+  -1.000000E+6  row13(New_South_Wales,Victoria,train,s1)
+
+VG(New_South_Wales,Victoria,train,s2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       row12(New_South_Wales,Victoria,train,s2)
+  -1.000000E+6  row13(New_South_Wales,Victoria,train,s2)
+
+VG(New_South_Wales,Victoria,train,s3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       row12(New_South_Wales,Victoria,train,s3)
+  -1.000000E+6  row13(New_South_Wales,Victoria,train,s3)
+
+REMAINING 21 ENTRIES SKIPPED
+
+---- VGG  1 if there is a flow between warehouse w and end-user j through mode k in scenario s, 0 otherwise
+
+VGG(Victoria,Queensland,train,s1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       row14(Victoria,Queensland,train,s1)
+  -100000       row15(Victoria,Queensland,train,s1)
+
+VGG(Victoria,Queensland,train,s2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       row14(Victoria,Queensland,train,s2)
+  -100000       row15(Victoria,Queensland,train,s2)
+
+VGG(Victoria,Queensland,train,s3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       row14(Victoria,Queensland,train,s3)
+  -100000       row15(Victoria,Queensland,train,s3)
+
+REMAINING 21 ENTRIES SKIPPED
+
+---- VGGG  1 if there is a flow between plant m and end-user j through mode k in scenario s, 0 otherwise
+
+VGGG(New_South_Wales,Queensland,train,s1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       row16(New_South_Wales,Queensland,train,s1)
+  -100000       row17(New_South_Wales,Queensland,train,s1)
+
+VGGG(New_South_Wales,Queensland,train,s2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       row16(New_South_Wales,Queensland,train,s2)
+  -100000       row17(New_South_Wales,Queensland,train,s2)
+
+VGGG(New_South_Wales,Queensland,train,s3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       row16(New_South_Wales,Queensland,train,s3)
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 28
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Column Listing      SOLVE supplychain Using MIP From line 655
+
+
+     VGGG  1 if there is a flow between plant m and end-user j through mode k in scenario s, 0 otherwise
+
+  -100000       row17(New_South_Wales,Queensland,train,s3)
+
+REMAINING 21 ENTRIES SKIPPED
+
+---- z  overall SCND costs at strategic and tactical level
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       cost
+
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 29
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Model Statistics    SOLVE supplychain Using MIP From line 655
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          17     SINGLE EQUATIONS          225
+BLOCKS OF VARIABLES          14     SINGLE VARIABLES          294
+NON ZERO ELEMENTS         1,328     DISCRETE VARIABLES         86
+
+
+GENERATION TIME      =        0.010 SECONDS      4 MB  24.9.2 r64480 DEX-DEG
+
+
+EXECUTION TIME       =        0.011 SECONDS      4 MB  24.9.2 r64480 DEX-DEG
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 30
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Solution Report     SOLVE supplychain Using MIP From line 655
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   supplychain         OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  655
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      8 Integer Solution          
+**** OBJECTIVE VALUE       5275128950.0000
+
+ RESOURCE USAGE, LIMIT          0.020      1000.000
+ ITERATION COUNT, LIMIT       136    2000000000
+
+IBM ILOG CPLEX   24.9.2 r64480 Released Nov 14, 2017 DEG x86 64bit/Mac OS X   
+--- GAMS/Cplex Link licensed for continuous and discrete problems.
+Cplex 12.7.1.0
+
+Space for names approximately 0.02 Mb
+Use option 'names no' to turn use of names off
+MIP status(102): integer optimal, tolerance
+Cplex Time: 0.01sec (det. 1.87 ticks)
+Fixing integer variables, and solving final LP...
+Fixed MIP status(1): optimal
+Cplex Time: 0.00sec (det. 0.55 ticks)
+Solution satisfies tolerances.
+
+MIP Solution:   5275128950.000000    (69 iterations, 0 nodes)
+Final Solve:    5275128950.000000    (67 iterations)
+
+Best possible:  5275128505.555555
+Absolute gap:          444.444445
+Relative gap:            0.000000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU cost                .              .              .             1.0000      
+---- EQU row1              -INF        21500.0000    300000.0000          .          
+
+  cost  objective function
+  row1  (8) enforces the budget limitation for the establishment of manufacturing plants and warehouses
+
+---- EQU row2  (9) ensure that no more than one facility can be established in each candidate location
+
+                       LOWER          LEVEL          UPPER         MARGINAL
+
+New_South_Wales         1.0000         1.0000         1.0000          .          
+Victoria                1.0000         1.0000         1.0000          .          
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 31
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Solution Report     SOLVE supplychain Using MIP From line 655
+
+
+---- EQU row3  (10) ensure that no more than one facility can be established in each candidate location
+
+                         LOWER          LEVEL          UPPER         MARGINAL
+
+Victoria                  1.0000         1.0000         1.0000          .          
+Western_Australia         1.0000         1.0000         1.0000          .          
+
+---- EQU row4  (11) carbon credit limitation at each scenario by substracting the production and transport emissions from regular cap.
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+s1     10000.0000     10000.0000     10000.0000         EPS         
+s2     10000.0000     10000.0000     10000.0000       -99.0000      
+s3     10000.0000     10000.0000     10000.0000      -340.0000      
+
+---- EQU row5  (12) enforce the capacity limitation of the manufacturing plants
+
+                                    LOWER          LEVEL          UPPER         MARGINAL
+
+New_South_Wales.green    .s1        -INF             .              .              .          
+New_South_Wales.green    .s2        -INF             .              .              .          
+New_South_Wales.green    .s3        -INF             .              .              .          
+New_South_Wales.pollutant.s1        -INF      -7.566667E+6          .              .          
+New_South_Wales.pollutant.s2        -INF      -7.433333E+6          .              .          
+New_South_Wales.pollutant.s3        -INF      -8.000000E+6          .              .          
+Victoria       .green    .s1        -INF             .              .              .          
+Victoria       .green    .s2        -INF             .              .              .          
+Victoria       .green    .s3        -INF             .              .              .          
+Victoria       .pollutant.s1        -INF      -6.366667E+6          .              .          
+Victoria       .pollutant.s2        -INF      -6.500000E+6          .              .          
+Victoria       .pollutant.s3        -INF      -8.000000E+6          .              .          
+
+---- EQU row7  (14) formulates the limitation in raw material provision by suppliers
+
+                             LOWER          LEVEL          UPPER         MARGINAL
+
+r1.Queensland     .s1        -INF             .              .              .          
+r1.Queensland     .s2        -INF             .              .              .          
+r1.Queensland     .s3        -INF             .              .              .          
+r1.South_Australia.s1        -INF      -533333.3333          .              .          
+r1.South_Australia.s2        -INF      -533333.3333          .              .          
+r1.South_Australia.s3        -INF      -1.200000E+6          .              .          
+r2.Queensland     .s1        -INF             .              .              .          
+r2.Queensland     .s2        -INF             .              .              .          
+r2.Queensland     .s3        -INF             .              .              .          
+r2.South_Australia.s1        -INF      -533333.3333          .              .          
+r2.South_Australia.s2        -INF      -533333.3333          .              .          
+r2.South_Australia.s3        -INF      -1.200000E+6          .              .          
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 32
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Solution Report     SOLVE supplychain Using MIP From line 655
+
+
+---- EQU row8  (15) guarantees the fulfillment of raw material requirement in the manufacturing plants
+
+                             LOWER          LEVEL          UPPER         MARGINAL
+
+r1.New_South_Wales.s1          .              .              .            -3.3000      
+r1.New_South_Wales.s2          .              .              .            -3.3000      
+r1.New_South_Wales.s3          .              .              .              .          
+r1.Victoria       .s1          .              .              .            -2.6400      
+r1.Victoria       .s2          .              .              .            -2.6400      
+r1.Victoria       .s3          .              .              .              .          
+r2.New_South_Wales.s1          .              .              .            -2.6400      
+r2.New_South_Wales.s2          .              .              .            -2.6400      
+r2.New_South_Wales.s3          .              .              .              .          
+r2.Victoria       .s1          .              .              .            -2.6400      
+r2.Victoria       .s2          .              .              .            -2.6400      
+r2.Victoria       .s3          .              .              .              .          
+
+---- EQU row9  (16) enforce the flow balance in manufacturing plant
+
+                                   LOWER          LEVEL          UPPER         MARGINAL
+
+product1.New_South_Wales.s1          .              .              .            12.5400      
+product1.New_South_Wales.s2          .              .              .            32.3400      
+product1.New_South_Wales.s3          .              .              .              .          
+product1.Victoria       .s1          .              .              .            11.8800      
+product1.Victoria       .s2          .              .              .            36.3000      
+product1.Victoria       .s3          .              .              .              .          
+product2.New_South_Wales.s1          .              .              .            13.2000      
+product2.New_South_Wales.s2          .              .              .            42.9000      
+product2.New_South_Wales.s3          .              .              .              .          
+product2.Victoria       .s1          .              .              .            12.5400      
+product2.Victoria       .s2          .              .              .            32.3400      
+product2.Victoria       .s3          .              .              .              .          
+
+---- EQU row10  (17) enforce the flow balance in warehouse
+
+                                     LOWER          LEVEL          UPPER         MARGINAL
+
+product1.Victoria         .s1          .              .              .            11.9130      
+product1.Victoria         .s2          .              .              .            37.3230      
+product1.Victoria         .s3          .              .              .              .          
+product1.Western_Australia.s1          .              .              .            12.2100      
+product1.Western_Australia.s2          .              .              .            47.5200      
+product1.Western_Australia.s3          .              .              .              .          
+product2.Victoria         .s1          .              .              .            12.5730      
+product2.Victoria         .s2          .              .              .            33.3630      
+product2.Victoria         .s3          .              .              .              .          
+product2.Western_Australia.s1          .              .              .            12.8040      
+product2.Western_Australia.s2          .              .              .            42.5040      
+product2.Western_Australia.s3          .              .              .              .          
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 33
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Solution Report     SOLVE supplychain Using MIP From line 655
+
+
+---- EQU row11  (18) enforce the flow balance in end-user
+
+                              LOWER          LEVEL          UPPER         MARGINAL
+
+product1.Queensland.s1    400000.0000    400000.0000    400000.0000      3300.0000      
+product1.Queensland.s2    400000.0000    400000.0000    400000.0000      3300.0000      
+product1.Queensland.s3          .              .              .              .          
+product1.Victoria  .s1    300000.0000    300000.0000    300000.0000      3300.0000      
+product1.Victoria  .s2    300000.0000    300000.0000    300000.0000      3300.0000      
+product1.Victoria  .s3          .              .              .              .          
+product2.Queensland.s1    600000.0000    600000.0000    600000.0000      2640.0000      
+product2.Queensland.s2    600000.0000    600000.0000    600000.0000      2640.0000      
+product2.Queensland.s3          .              .              .              .          
+product2.Victoria  .s1    200000.0000    200000.0000    200000.0000      1108.9980      
+product2.Victoria  .s2    200000.0000    200000.0000    200000.0000      1133.5280      
+product2.Victoria  .s3          .              .              .              .          
+
+---- EQU row12  (19)  impose the product flow limitations between different supply chain participants
+
+                                                     LOWER          LEVEL          UPPER         MARGINAL
+
+New_South_Wales.Victoria         .train   .s1        -INF             .              .              .          
+New_South_Wales.Victoria         .train   .s2        -INF             .              .              .          
+New_South_Wales.Victoria         .train   .s3        -INF             .              .              .          
+New_South_Wales.Victoria         .airplane.s1        -INF             .              .              .          
+New_South_Wales.Victoria         .airplane.s2        -INF             .              .              .          
+New_South_Wales.Victoria         .airplane.s3        -INF             .              .              .          
+New_South_Wales.Western_Australia.train   .s1        -INF             .              .              .          
+New_South_Wales.Western_Australia.train   .s2        -INF      -199999.0000          .              .          
+New_South_Wales.Western_Australia.train   .s3        -INF             .              .              .          
+New_South_Wales.Western_Australia.airplane.s1        -INF             .              .              .          
+New_South_Wales.Western_Australia.airplane.s2        -INF             .              .              .          
+New_South_Wales.Western_Australia.airplane.s3        -INF             .              .              .          
+Victoria       .Victoria         .train   .s1        -INF      -399999.0000          .              .          
+Victoria       .Victoria         .train   .s2        -INF      -399999.0000          .              .          
+Victoria       .Victoria         .train   .s3        -INF             .              .              .          
+Victoria       .Victoria         .airplane.s1        -INF             .              .              .          
+Victoria       .Victoria         .airplane.s2        -INF             .              .              .          
+Victoria       .Victoria         .airplane.s3        -INF             .              .              .          
+Victoria       .Western_Australia.train   .s1        -INF      -399999.0000          .              .          
+Victoria       .Western_Australia.train   .s2        -INF      -199999.0000          .              .          
+Victoria       .Western_Australia.train   .s3        -INF             .              .              .          
+Victoria       .Western_Australia.airplane.s1        -INF             .              .              .          
+Victoria       .Western_Australia.airplane.s2        -INF             .              .              .          
+Victoria       .Western_Australia.airplane.s3        -INF             .              .              .          
+
+---- EQU row13  (19)  impose the product flow limitations between different supply chain participants1
+
+                                                     LOWER          LEVEL          UPPER         MARGINAL
+
+New_South_Wales.Victoria         .train   .s1        -INF             .              .              .          
+New_South_Wales.Victoria         .train   .s2        -INF             .              .              .          
+New_South_Wales.Victoria         .train   .s3        -INF             .              .              .          
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 34
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Solution Report     SOLVE supplychain Using MIP From line 655
+
+
+     EQU row13  (19)  impose the product flow limitations between different supply chain participants1
+
+                                                     LOWER          LEVEL          UPPER         MARGINAL
+
+New_South_Wales.Victoria         .airplane.s1        -INF             .              .              .          
+New_South_Wales.Victoria         .airplane.s2        -INF             .              .              .          
+New_South_Wales.Victoria         .airplane.s3        -INF             .              .              .          
+New_South_Wales.Western_Australia.train   .s1        -INF             .              .              .          
+New_South_Wales.Western_Australia.train   .s2        -INF      -800000.0000          .              .          
+New_South_Wales.Western_Australia.train   .s3        -INF             .              .              .          
+New_South_Wales.Western_Australia.airplane.s1        -INF             .              .              .          
+New_South_Wales.Western_Australia.airplane.s2        -INF             .              .              .          
+New_South_Wales.Western_Australia.airplane.s3        -INF             .              .              .          
+Victoria       .Victoria         .train   .s1        -INF      -600000.0000          .              .          
+Victoria       .Victoria         .train   .s2        -INF      -600000.0000          .              .          
+Victoria       .Victoria         .train   .s3        -INF             .              .              .          
+Victoria       .Victoria         .airplane.s1        -INF             .              .              .          
+Victoria       .Victoria         .airplane.s2        -INF             .              .              .          
+Victoria       .Victoria         .airplane.s3        -INF             .              .              .          
+Victoria       .Western_Australia.train   .s1        -INF      -600000.0000          .              .          
+Victoria       .Western_Australia.train   .s2        -INF      -800000.0000          .              .          
+Victoria       .Western_Australia.train   .s3        -INF             .              .              .          
+Victoria       .Western_Australia.airplane.s1        -INF             .              .              .          
+Victoria       .Western_Australia.airplane.s2        -INF             .              .              .          
+Victoria       .Western_Australia.airplane.s3        -INF             .              .              .          
+
+---- EQU row14  (20) mpose the product flow limitations between different supply chain participants
+
+                                                LOWER          LEVEL          UPPER         MARGINAL
+
+Victoria         .Queensland.train   .s1        -INF       -99999.0000          .              .          
+Victoria         .Queensland.train   .s2        -INF       -99999.0000          .              .          
+Victoria         .Queensland.train   .s3        -INF             .              .              .          
+Victoria         .Queensland.airplane.s1        -INF       -99999.0000          .              .          
+Victoria         .Queensland.airplane.s2        -INF       -99999.0000          .              .          
+Victoria         .Queensland.airplane.s3        -INF             .              .              .          
+Victoria         .Victoria  .train   .s1        -INF       -99999.0000          .              .          
+Victoria         .Victoria  .train   .s2        -INF       -99999.0000          .              .          
+Victoria         .Victoria  .train   .s3        -INF             .              .              .          
+Victoria         .Victoria  .airplane.s1        -INF       -99999.0000          .              .          
+Victoria         .Victoria  .airplane.s2        -INF       -99999.0000          .              .          
+Victoria         .Victoria  .airplane.s3        -INF             .              .              .          
+Western_Australia.Queensland.train   .s1        -INF       -99999.0000          .              .          
+Western_Australia.Queensland.train   .s2        -INF       -99999.0000          .              .          
+Western_Australia.Queensland.train   .s3        -INF             .              .              .          
+Western_Australia.Queensland.airplane.s1        -INF       -99999.0000          .              .          
+Western_Australia.Queensland.airplane.s2        -INF       -99999.0000          .              .          
+Western_Australia.Queensland.airplane.s3        -INF             .              .              .          
+Western_Australia.Victoria  .train   .s1        -INF       -99999.0000          .              .          
+Western_Australia.Victoria  .train   .s2        -INF       -99999.0000          .              .          
+Western_Australia.Victoria  .train   .s3        -INF             .              .              .          
+Western_Australia.Victoria  .airplane.s1        -INF       -99999.0000          .              .          
+Western_Australia.Victoria  .airplane.s2        -INF       -99999.0000          .              .          
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 35
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Solution Report     SOLVE supplychain Using MIP From line 655
+
+
+     EQU row14  (20) mpose the product flow limitations between different supply chain participants
+
+                                                LOWER          LEVEL          UPPER         MARGINAL
+
+Western_Australia.Victoria  .airplane.s3        -INF             .              .              .          
+
+---- EQU row15  (20) mpose the product flow limitations between different supply chain participants1
+
+                                                LOWER          LEVEL          UPPER         MARGINAL
+
+Victoria         .Queensland.train   .s1        -INF             .              .         -1313.5815      
+Victoria         .Queensland.train   .s2        -INF             .              .         -1298.2365      
+Victoria         .Queensland.train   .s3        -INF             .              .              .          
+Victoria         .Queensland.airplane.s1        -INF             .              .         -1313.5320      
+Victoria         .Queensland.airplane.s2        -INF             .              .         -1288.2870      
+Victoria         .Queensland.airplane.s3        -INF             .              .              .          
+Victoria         .Victoria  .train   .s1        -INF             .              .          -548.1960      
+Victoria         .Victoria  .train   .s2        -INF             .              .          -549.5710      
+Victoria         .Victoria  .train   .s3        -INF             .              .              .          
+Victoria         .Victoria  .airplane.s1        -INF             .              .          -548.0475      
+Victoria         .Victoria  .airplane.s2        -INF             .              .          -544.9675      
+Victoria         .Victoria  .airplane.s3        -INF             .              .              .          
+Western_Australia.Queensland.train   .s1        -INF             .              .         -1313.4660      
+Western_Australia.Queensland.train   .s2        -INF             .              .         -1293.6660      
+Western_Australia.Queensland.train   .s3        -INF             .              .              .          
+Western_Australia.Queensland.airplane.s1        -INF             .              .         -1313.4165      
+Western_Australia.Queensland.airplane.s2        -INF             .              .         -1283.7165      
+Western_Australia.Queensland.airplane.s3        -INF             .              .              .          
+Western_Australia.Victoria  .train   .s1        -INF             .              .          -547.8660      
+Western_Australia.Victoria  .train   .s2        -INF             .              .          -540.3310      
+Western_Australia.Victoria  .train   .s3        -INF             .              .              .          
+Western_Australia.Victoria  .airplane.s1        -INF             .              .          -547.8110      
+Western_Australia.Victoria  .airplane.s2        -INF             .              .          -536.9760      
+Western_Australia.Victoria  .airplane.s3        -INF             .              .              .          
+
+---- EQU row16  (21) mpose the product flow limitations between different supply chain participants
+
+                                              LOWER          LEVEL          UPPER         MARGINAL
+
+New_South_Wales.Queensland.train   .s1        -INF       -99999.0000          .              .          
+New_South_Wales.Queensland.train   .s2        -INF       -99999.0000          .              .          
+New_South_Wales.Queensland.train   .s3        -INF             .              .              .          
+New_South_Wales.Queensland.airplane.s1        -INF       -99999.0000          .              .          
+New_South_Wales.Queensland.airplane.s2        -INF       -99999.0000          .              .          
+New_South_Wales.Queensland.airplane.s3        -INF             .              .              .          
+New_South_Wales.Victoria  .train   .s1        -INF       -99999.0000          .              .          
+New_South_Wales.Victoria  .train   .s2        -INF       -99999.0000          .              .          
+New_South_Wales.Victoria  .train   .s3        -INF             .              .              .          
+New_South_Wales.Victoria  .airplane.s1        -INF       -99999.0000          .              .          
+New_South_Wales.Victoria  .airplane.s2        -INF       -99999.0000          .              .          
+New_South_Wales.Victoria  .airplane.s3        -INF             .              .              .          
+Victoria       .Queensland.train   .s1        -INF       -99999.0000          .              .          
+Victoria       .Queensland.train   .s2        -INF       -99999.0000          .              .          
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 36
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Solution Report     SOLVE supplychain Using MIP From line 655
+
+
+     EQU row16  (21) mpose the product flow limitations between different supply chain participants
+
+                                              LOWER          LEVEL          UPPER         MARGINAL
+
+Victoria       .Queensland.train   .s3        -INF             .              .              .          
+Victoria       .Queensland.airplane.s1        -INF       -99999.0000          .              .          
+Victoria       .Queensland.airplane.s2        -INF       -99999.0000          .              .          
+Victoria       .Queensland.airplane.s3        -INF             .              .              .          
+Victoria       .Victoria  .train   .s1        -INF       -99999.0000          .              .          
+Victoria       .Victoria  .train   .s2        -INF       -99999.0000          .              .          
+Victoria       .Victoria  .train   .s3        -INF             .              .              .          
+Victoria       .Victoria  .airplane.s1        -INF       -99999.0000          .              .          
+Victoria       .Victoria  .airplane.s2        -INF       -99999.0000          .              .          
+Victoria       .Victoria  .airplane.s3        -INF             .              .              .          
+
+---- EQU row17  (21) mpose the product flow limitations between different supply chain participants1
+
+                                              LOWER          LEVEL          UPPER         MARGINAL
+
+New_South_Wales.Queensland.train   .s1        -INF             .              .         -1313.2680      
+New_South_Wales.Queensland.train   .s2        -INF             .              .         -1293.4680      
+New_South_Wales.Queensland.train   .s3        -INF             .              .              .          
+New_South_Wales.Queensland.airplane.s1        -INF             .              .         -1313.2185      
+New_South_Wales.Queensland.airplane.s2        -INF             .              .         -1283.5185      
+New_South_Wales.Queensland.airplane.s3        -INF             .              .              .          
+New_South_Wales.Victoria  .train   .s1        -INF             .              .          -547.8110      
+New_South_Wales.Victoria  .train   .s2        -INF             .              .          -542.8610      
+New_South_Wales.Victoria  .train   .s3        -INF             .              .              .          
+New_South_Wales.Victoria  .airplane.s1        -INF             .              .          -547.7560      
+New_South_Wales.Victoria  .airplane.s2        -INF             .              .          -539.5060      
+New_South_Wales.Victoria  .airplane.s3        -INF             .              .              .          
+Victoria       .Queensland.train   .s1        -INF             .              .         -1313.5980      
+Victoria       .Queensland.train   .s2        -INF             .              .         -1298.7480      
+Victoria       .Queensland.train   .s3        -INF             .              .              .          
+Victoria       .Queensland.airplane.s1        -INF             .              .         -1313.5485      
+Victoria       .Queensland.airplane.s2        -INF             .              .         -1288.7985      
+Victoria       .Queensland.airplane.s3        -INF             .              .              .          
+Victoria       .Victoria  .train   .s1        -INF             .              .          -548.2125      
+Victoria       .Victoria  .train   .s2        -INF             .              .          -550.0825      
+Victoria       .Victoria  .train   .s3        -INF             .              .              .          
+Victoria       .Victoria  .airplane.s1        -INF             .              .          -548.2125      
+Victoria       .Victoria  .airplane.s2        -INF             .              .          -545.6275      
+Victoria       .Victoria  .airplane.s3        -INF             .              .              .          
+
+---- VAR VQ  amount of product i produced in plant m with technology h in scenario s
+
+                                             LOWER          LEVEL          UPPER         MARGINAL
+
+product1.New_South_Wales.green    .s1          .              .            +INF           13.2000      
+product1.New_South_Wales.green    .s2          .              .            +INF           52.8000      
+product1.New_South_Wales.green    .s3          .              .            +INF          224.4000      
+product1.New_South_Wales.pollutant.s1          .         33333.3333        +INF             .          
+product1.New_South_Wales.pollutant.s2          .         66666.6667        +INF             .          
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 37
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Solution Report     SOLVE supplychain Using MIP From line 655
+
+
+     VAR VQ  amount of product i produced in plant m with technology h in scenario s
+
+                                             LOWER          LEVEL          UPPER         MARGINAL
+
+product1.New_South_Wales.pollutant.s3          .              .            +INF           74.8000      
+product1.Victoria       .green    .s1          .              .            +INF           13.2000      
+product1.Victoria       .green    .s2          .              .            +INF           48.1800      
+product1.Victoria       .green    .s3          .              .            +INF          224.4000      
+product1.Victoria       .pollutant.s1          .         33333.3333        +INF             .          
+product1.Victoria       .pollutant.s2          .              .            +INF           34.9800      
+product1.Victoria       .pollutant.s3          .              .            +INF          210.8000      
+product2.New_South_Wales.green    .s1          .              .            +INF           14.1900      
+product2.New_South_Wales.green    .s2          .              .            +INF           43.8900      
+product2.New_South_Wales.green    .s3          .              .            +INF          226.1000      
+product2.New_South_Wales.pollutant.s1          .        100000.0000        +INF             .          
+product2.New_South_Wales.pollutant.s2          .        100000.0000        +INF             .          
+product2.New_South_Wales.pollutant.s3          .              .            +INF          109.4800      
+product2.Victoria       .green    .s1          .              .            +INF           14.1900      
+product2.Victoria       .green    .s2          .              .            +INF           53.7900      
+product2.Victoria       .green    .s3          .              .            +INF          226.1000      
+product2.Victoria       .pollutant.s1          .        500000.0000        +INF             .          
+product2.Victoria       .pollutant.s2          .        500000.0000        +INF             .          
+product2.Victoria       .pollutant.s3          .              .            +INF           75.4800      
+
+---- VAR VR  amount of raw material r shipped from supplier n to plant m in scenario s
+
+                                             LOWER          LEVEL          UPPER         MARGINAL
+
+r1.Queensland     .New_South_Wales.s1          .              .            +INF            EPS         
+r1.Queensland     .New_South_Wales.s2          .              .            +INF            EPS         
+r1.Queensland     .New_South_Wales.s3          .              .            +INF            3.4000      
+r1.Queensland     .Victoria       .s1          .              .            +INF            0.6600      
+r1.Queensland     .Victoria       .s2          .              .            +INF            0.6600      
+r1.Queensland     .Victoria       .s3          .              .            +INF            3.4000      
+r1.South_Australia.New_South_Wales.s1          .        133333.3333        +INF             .          
+r1.South_Australia.New_South_Wales.s2          .        166666.6667        +INF             .          
+r1.South_Australia.New_South_Wales.s3          .              .            +INF            3.4000      
+r1.South_Australia.Victoria       .s1          .        533333.3333        +INF             .          
+r1.South_Australia.Victoria       .s2          .        500000.0000        +INF             .          
+r1.South_Australia.Victoria       .s3          .              .            +INF            2.7200      
+r2.Queensland     .New_South_Wales.s1          .              .            +INF            EPS         
+r2.Queensland     .New_South_Wales.s2          .              .            +INF            EPS         
+r2.Queensland     .New_South_Wales.s3          .              .            +INF            2.7200      
+r2.Queensland     .Victoria       .s1          .              .            +INF            EPS         
+r2.Queensland     .Victoria       .s2          .              .            +INF            EPS         
+r2.Queensland     .Victoria       .s3          .              .            +INF            2.7200      
+r2.South_Australia.New_South_Wales.s1          .        133333.3333        +INF             .          
+r2.South_Australia.New_South_Wales.s2          .        166666.6667        +INF             .          
+r2.South_Australia.New_South_Wales.s3          .              .            +INF            2.7200      
+r2.South_Australia.Victoria       .s1          .        533333.3333        +INF             .          
+r2.South_Australia.Victoria       .s2          .        500000.0000        +INF             .          
+r2.South_Australia.Victoria       .s3          .              .            +INF            2.7200      
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 38
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Solution Report     SOLVE supplychain Using MIP From line 655
+
+
+---- VAR VL  amount of product i shipped from plant m to warehouse w through technology k in scenario s
+
+                                                              LOWER          LEVEL          UPPER         MARGINAL
+
+product1.New_South_Wales.Victoria         .train   .s1          .              .            +INF            1.2210      
+product1.New_South_Wales.Victoria         .train   .s2          .              .            +INF            5.5110      
+product1.New_South_Wales.Victoria         .train   .s3          .              .            +INF           34.6120      
+product1.New_South_Wales.Victoria         .airplane.s1          .              .            +INF            1.5510      
+product1.New_South_Wales.Victoria         .airplane.s2          .              .            +INF           35.5410      
+product1.New_South_Wales.Victoria         .airplane.s3          .              .            +INF          136.9520      
+product1.New_South_Wales.Western_Australia.train   .s1          .              .            +INF            0.6600      
+product1.New_South_Wales.Western_Australia.train   .s2          .         33333.3333        +INF             .          
+product1.New_South_Wales.Western_Australia.train   .s3          .              .            +INF           51.3400      
+product1.New_South_Wales.Western_Australia.airplane.s1          .              .            +INF            0.7260      
+product1.New_South_Wales.Western_Australia.airplane.s2          .              .            +INF           24.8160      
+product1.New_South_Wales.Western_Australia.airplane.s3          .              .            +INF          136.4080      
+product1.Victoria       .Victoria         .train   .s1          .              .            +INF             .          
+product1.Victoria       .Victoria         .train   .s2          .              .            +INF             .          
+product1.Victoria       .Victoria         .train   .s3          .              .            +INF            3.4340      
+product1.Victoria       .Victoria         .airplane.s1          .              .            +INF            EPS         
+product1.Victoria       .Victoria         .airplane.s2          .              .            +INF            8.9100      
+product1.Victoria       .Victoria         .airplane.s3          .              .            +INF           34.0340      
+product1.Victoria       .Western_Australia.train   .s1          .         33333.3333        +INF             .          
+product1.Victoria       .Western_Australia.train   .s2          .              .            +INF             .          
+product1.Victoria       .Western_Australia.train   .s3          .              .            +INF           37.7400      
+product1.Victoria       .Western_Australia.airplane.s1          .              .            +INF            0.0660      
+product1.Victoria       .Western_Australia.airplane.s2          .              .            +INF           28.7760      
+product1.Victoria       .Western_Australia.airplane.s3          .              .            +INF          136.4080      
+product2.New_South_Wales.Victoria         .train   .s1          .              .            +INF            1.0890      
+product2.New_South_Wales.Victoria         .train   .s2          .              .            +INF           19.8990      
+product2.New_South_Wales.Victoria         .train   .s3          .              .            +INF           34.4760      
+product2.New_South_Wales.Victoria         .airplane.s1          .              .            +INF            1.4190      
+product2.New_South_Wales.Victoria         .airplane.s2          .              .            +INF           40.0290      
+product2.New_South_Wales.Victoria         .airplane.s3          .              .            +INF          102.8160      
+product2.New_South_Wales.Western_Australia.train   .s1          .              .            +INF            0.6600      
+product2.New_South_Wales.Western_Australia.train   .s2          .              .            +INF           10.5600      
+product2.New_South_Wales.Western_Australia.train   .s3          .              .            +INF           34.2720      
+product2.New_South_Wales.Western_Australia.airplane.s1          .              .            +INF            0.7590      
+product2.New_South_Wales.Western_Australia.airplane.s2          .              .            +INF           20.5590      
+product2.New_South_Wales.Western_Australia.airplane.s3          .              .            +INF           68.3740      
+product2.Victoria       .Victoria         .train   .s1          .        200000.0000        +INF             .          
+product2.Victoria       .Victoria         .train   .s2          .        200000.0000        +INF             .          
+product2.Victoria       .Victoria         .train   .s3          .              .            +INF            3.4340      
+product2.Victoria       .Victoria         .airplane.s1          .              .            +INF            EPS         
+product2.Victoria       .Victoria         .airplane.s2          .              .            +INF            8.9100      
+product2.Victoria       .Victoria         .airplane.s3          .              .            +INF           34.0340      
+product2.Victoria       .Western_Australia.train   .s1          .        100000.0000        +INF             .          
+product2.Victoria       .Western_Australia.train   .s2          .        100000.0000        +INF             .          
+product2.Victoria       .Western_Australia.train   .s3          .              .            +INF           34.2720      
+product2.Victoria       .Western_Australia.airplane.s1          .              .            +INF            0.0990      
+product2.Victoria       .Western_Australia.airplane.s2          .              .            +INF           29.7990      
+product2.Victoria       .Western_Australia.airplane.s3          .              .            +INF          136.3740      
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 39
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Solution Report     SOLVE supplychain Using MIP From line 655
+
+
+---- VAR VLL  amount of product i shipped from warehouse w through technology k in scenario s
+
+                                                         LOWER          LEVEL          UPPER         MARGINAL
+
+product1.Victoria         .Queensland.train   .s1          .              .            +INF         4593.7320      
+product1.Victoria         .Queensland.train   .s2          .              .            +INF         4536.9720      
+product1.Victoria         .Queensland.train   .s3          .              .            +INF           34.3400      
+product1.Victoria         .Queensland.airplane.s1          .              .            +INF         4593.5010      
+product1.Victoria         .Queensland.airplane.s2          .              .            +INF         4487.2410      
+product1.Victoria         .Queensland.airplane.s3          .              .            +INF           68.4080      
+product1.Victoria         .Victoria  .train   .s1          .              .            +INF            1.1220      
+product1.Victoria         .Victoria  .train   .s2          .              .            +INF           35.7720      
+product1.Victoria         .Victoria  .train   .s3          .              .            +INF            3.4340      
+product1.Victoria         .Victoria  .airplane.s1          .              .            +INF            0.5280      
+product1.Victoria         .Victoria  .airplane.s2          .              .            +INF           17.3580      
+product1.Victoria         .Victoria  .airplane.s3          .              .            +INF           34.3400      
+product1.Western_Australia.Queensland.train   .s1          .              .            +INF         4593.3360      
+product1.Western_Australia.Queensland.train   .s2          .              .            +INF         4519.7460      
+product1.Western_Australia.Queensland.train   .s3          .              .            +INF           34.3400      
+product1.Western_Australia.Queensland.airplane.s1          .              .            +INF         4593.1050      
+product1.Western_Australia.Queensland.airplane.s2          .              .            +INF         4479.9150      
+product1.Western_Australia.Queensland.airplane.s3          .              .            +INF          102.4080      
+product1.Western_Australia.Victoria  .train   .s1          .         16666.6667        +INF             .          
+product1.Western_Australia.Victoria  .train   .s2          .         16666.6667        +INF             .          
+product1.Western_Australia.Victoria  .train   .s3          .              .            +INF           34.6120      
+product1.Western_Australia.Victoria  .airplane.s1          .         16666.6667        +INF             .          
+product1.Western_Australia.Victoria  .airplane.s2          .         16666.6667        +INF             .          
+product1.Western_Australia.Victoria  .airplane.s3          .              .            +INF          102.9520      
+product2.Victoria         .Queensland.train   .s1          .         50000.0000        +INF             .          
+product2.Victoria         .Queensland.train   .s2          .         50000.0000        +INF             .          
+product2.Victoria         .Queensland.train   .s3          .              .            +INF           34.2720      
+product2.Victoria         .Queensland.airplane.s1          .         50000.0000        +INF             .          
+product2.Victoria         .Queensland.airplane.s2          .         50000.0000        +INF             .          
+product2.Victoria         .Queensland.airplane.s3          .              .            +INF          102.3740      
+product2.Victoria         .Victoria  .train   .s1          .         50000.0000        +INF             .          
+product2.Victoria         .Victoria  .train   .s2          .         50000.0000        +INF             .          
+product2.Victoria         .Victoria  .train   .s3          .              .            +INF            3.4340      
+product2.Victoria         .Victoria  .airplane.s1          .         50000.0000        +INF             .          
+product2.Victoria         .Victoria  .airplane.s2          .         50000.0000        +INF             .          
+product2.Victoria         .Victoria  .airplane.s3          .              .            +INF           34.3400      
+product2.Western_Australia.Queensland.train   .s1          .         50000.0000        +INF             .          
+product2.Western_Australia.Queensland.train   .s2          .         50000.0000        +INF             .          
+product2.Western_Australia.Queensland.train   .s3          .              .            +INF           34.2720      
+product2.Western_Australia.Queensland.airplane.s1          .         50000.0000        +INF             .          
+product2.Western_Australia.Queensland.airplane.s2          .         50000.0000        +INF             .          
+product2.Western_Australia.Queensland.airplane.s3          .              .            +INF          102.3740      
+product2.Western_Australia.Victoria  .train   .s1          .              .            +INF             .          
+product2.Western_Australia.Victoria  .train   .s2          .              .            +INF             .          
+product2.Western_Australia.Victoria  .train   .s3          .              .            +INF           34.4760      
+product2.Western_Australia.Victoria  .airplane.s1          .              .            +INF            0.2200      
+product2.Western_Australia.Victoria  .airplane.s2          .              .            +INF           13.4200      
+product2.Western_Australia.Victoria  .airplane.s3          .              .            +INF          102.8160      
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 40
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Solution Report     SOLVE supplychain Using MIP From line 655
+
+
+---- VAR VLLL  amount of product i shipped from plant m to end-user j through technology k in scenario s
+
+                                                       LOWER          LEVEL          UPPER         MARGINAL
+
+product1.New_South_Wales.Queensland.train   .s1          .              .            +INF         4592.4780      
+product1.New_South_Wales.Queensland.train   .s2          .              .            +INF         4503.3780      
+product1.New_South_Wales.Queensland.train   .s3          .              .            +INF           34.3400      
+product1.New_South_Wales.Queensland.airplane.s1          .              .            +INF         4592.2470      
+product1.New_South_Wales.Queensland.airplane.s2          .              .            +INF         4463.5470      
+product1.New_South_Wales.Queensland.airplane.s3          .              .            +INF          102.4080      
+product1.New_South_Wales.Victoria  .train   .s1          .         16666.6667        +INF             .          
+product1.New_South_Wales.Victoria  .train   .s2          .         16666.6667        +INF             .          
+product1.New_South_Wales.Victoria  .train   .s3          .              .            +INF           34.6120      
+product1.New_South_Wales.Victoria  .airplane.s1          .         16666.6667        +INF             .          
+product1.New_South_Wales.Victoria  .airplane.s2          .         16666.6667        +INF             .          
+product1.New_South_Wales.Victoria  .airplane.s3          .              .            +INF          102.9520      
+product1.Victoria       .Queensland.train   .s1          .              .            +INF         4593.7980      
+product1.Victoria       .Queensland.train   .s2          .              .            +INF         4539.0180      
+product1.Victoria       .Queensland.train   .s3          .              .            +INF           34.3400      
+product1.Victoria       .Queensland.airplane.s1          .              .            +INF         4593.5670      
+product1.Victoria       .Queensland.airplane.s2          .              .            +INF         4499.1870      
+product1.Victoria       .Queensland.airplane.s3          .              .            +INF          102.4080      
+product1.Victoria       .Victoria  .train   .s1          .              .            +INF            1.1880      
+product1.Victoria       .Victoria  .train   .s2          .              .            +INF           37.8180      
+product1.Victoria       .Victoria  .train   .s3          .              .            +INF            3.4340      
+product1.Victoria       .Victoria  .airplane.s1          .              .            +INF            1.1880      
+product1.Victoria       .Victoria  .airplane.s2          .              .            +INF           19.9980      
+product1.Victoria       .Victoria  .airplane.s3          .              .            +INF           34.0340      
+product2.New_South_Wales.Queensland.train   .s1          .         50000.0000        +INF             .          
+product2.New_South_Wales.Queensland.train   .s2          .         50000.0000        +INF             .          
+product2.New_South_Wales.Queensland.train   .s3          .              .            +INF           34.2720      
+product2.New_South_Wales.Queensland.airplane.s1          .         50000.0000        +INF             .          
+product2.New_South_Wales.Queensland.airplane.s2          .         50000.0000        +INF             .          
+product2.New_South_Wales.Queensland.airplane.s3          .              .            +INF          102.3740      
+product2.New_South_Wales.Victoria  .train   .s1          .              .            +INF            0.2860      
+product2.New_South_Wales.Victoria  .train   .s2          .              .            +INF            5.4560      
+product2.New_South_Wales.Victoria  .train   .s3          .              .            +INF           34.4760      
+product2.New_South_Wales.Victoria  .airplane.s1          .              .            +INF            0.5060      
+product2.New_South_Wales.Victoria  .airplane.s2          .              .            +INF           18.8760      
+product2.New_South_Wales.Victoria  .airplane.s3          .              .            +INF          102.8160      
+product2.Victoria       .Queensland.train   .s1          .         50000.0000        +INF             .          
+product2.Victoria       .Queensland.train   .s2          .         50000.0000        +INF             .          
+product2.Victoria       .Queensland.train   .s3          .              .            +INF           34.2720      
+product2.Victoria       .Queensland.airplane.s1          .         50000.0000        +INF             .          
+product2.Victoria       .Queensland.airplane.s2          .         50000.0000        +INF             .          
+product2.Victoria       .Queensland.airplane.s3          .              .            +INF          102.3740      
+product2.Victoria       .Victoria  .train   .s1          .         50000.0000        +INF             .          
+product2.Victoria       .Victoria  .train   .s2          .         50000.0000        +INF             .          
+product2.Victoria       .Victoria  .train   .s3          .              .            +INF            3.4340      
+product2.Victoria       .Victoria  .airplane.s1          .         50000.0000        +INF             .          
+product2.Victoria       .Victoria  .airplane.s2          .         50000.0000        +INF             .          
+product2.Victoria       .Victoria  .airplane.s3          .              .            +INF           34.0340      
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 41
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Solution Report     SOLVE supplychain Using MIP From line 655
+
+
+---- VAR VO  amount of shortage for product i in end-user j in scenario s
+
+                              LOWER          LEVEL          UPPER         MARGINAL
+
+product1.Queensland.s1          .        400000.0000        +INF             .          
+product1.Queensland.s2          .        400000.0000        +INF             .          
+product1.Queensland.s3          .              .            +INF         3400.0000      
+product1.Victoria  .s1          .        233333.3333        +INF             .          
+product1.Victoria  .s2          .        233333.3333        +INF             .          
+product1.Victoria  .s3          .              .            +INF         3400.0000      
+product2.Queensland.s1          .        200000.0000        +INF             .          
+product2.Queensland.s2          .        200000.0000        +INF             .          
+product2.Queensland.s3          .              .            +INF         2720.0000      
+product2.Victoria  .s1          .              .            +INF         1531.0020      
+product2.Victoria  .s2          .              .            +INF         1506.4720      
+product2.Victoria  .s3          .              .            +INF         2720.0000      
+
+---- VAR VE  Net number of carbon credits traded in scenario s
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+s1        -INF       266666.6667        +INF             .          
+s2        -INF       254666.6667        +INF             .          
+s3        -INF       -10000.0000        +INF             .          
+
+---- VAR VF  1 if manufacturing plant m with technology h and capacity u is estimated 0 otherwise
+
+                                       LOWER          LEVEL          UPPER         MARGINAL
+
+New_South_Wales.green    .small          .              .             1.0000      1200.0000      
+New_South_Wales.green    .large          .              .             1.0000      2400.0000      
+New_South_Wales.pollutant.small          .             1.0000         1.0000      1200.0000      
+New_South_Wales.pollutant.large          .              .             1.0000      2400.0000      
+Victoria       .green    .small          .              .             1.0000       600.0000      
+Victoria       .green    .large          .              .             1.0000      1200.0000      
+Victoria       .pollutant.small          .             1.0000         1.0000       600.0000      
+Victoria       .pollutant.large          .              .             1.0000      1200.0000      
+
+---- VAR VFF  1 if warehouse w with capacity level v is estimated, 0 otherwise
+
+                               LOWER          LEVEL          UPPER         MARGINAL
+
+Victoria         .small          .             1.0000         1.0000       600.0000      
+Victoria         .large          .              .             1.0000      1200.0000      
+Western_Australia.small          .             1.0000         1.0000       650.0000      
+Western_Australia.large          .              .             1.0000      1300.0000      
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 42
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Solution Report     SOLVE supplychain Using MIP From line 655
+
+
+---- VAR VFFF  1 if supplier n is selected, 0 otherwise
+
+                       LOWER          LEVEL          UPPER         MARGINAL
+
+Queensland               .              .             1.0000      1500.0000      
+South_Australia          .             1.0000         1.0000      1000.0000      
+
+---- VAR VG  1 if there is a flow between plant m and warehouse w through mode k in scenario s , 0 otherwise
+
+                                                     LOWER          LEVEL          UPPER         MARGINAL
+
+New_South_Wales.Victoria         .train   .s1          .              .             1.0000         EPS         
+New_South_Wales.Victoria         .train   .s2          .              .             1.0000         EPS         
+New_South_Wales.Victoria         .train   .s3          .              .             1.0000         EPS         
+New_South_Wales.Victoria         .airplane.s1          .              .             1.0000         EPS         
+New_South_Wales.Victoria         .airplane.s2          .              .             1.0000         EPS         
+New_South_Wales.Victoria         .airplane.s3          .              .             1.0000         EPS         
+New_South_Wales.Western_Australia.train   .s1          .              .             1.0000         EPS         
+New_South_Wales.Western_Australia.train   .s2          .             1.0000         1.0000         EPS         
+New_South_Wales.Western_Australia.train   .s3          .              .             1.0000         EPS         
+New_South_Wales.Western_Australia.airplane.s1          .              .             1.0000         EPS         
+New_South_Wales.Western_Australia.airplane.s2          .              .             1.0000         EPS         
+New_South_Wales.Western_Australia.airplane.s3          .              .             1.0000         EPS         
+Victoria       .Victoria         .train   .s1          .             1.0000         1.0000         EPS         
+Victoria       .Victoria         .train   .s2          .             1.0000         1.0000         EPS         
+Victoria       .Victoria         .train   .s3          .              .             1.0000         EPS         
+Victoria       .Victoria         .airplane.s1          .              .             1.0000         EPS         
+Victoria       .Victoria         .airplane.s2          .              .             1.0000         EPS         
+Victoria       .Victoria         .airplane.s3          .              .             1.0000         EPS         
+Victoria       .Western_Australia.train   .s1          .             1.0000         1.0000         EPS         
+Victoria       .Western_Australia.train   .s2          .             1.0000         1.0000         EPS         
+Victoria       .Western_Australia.train   .s3          .              .             1.0000         EPS         
+Victoria       .Western_Australia.airplane.s1          .              .             1.0000         EPS         
+Victoria       .Western_Australia.airplane.s2          .              .             1.0000         EPS         
+Victoria       .Western_Australia.airplane.s3          .              .             1.0000         EPS         
+
+---- VAR VGG  1 if there is a flow between warehouse w and end-user j through mode k in scenario s, 0 otherwise
+
+                                                LOWER          LEVEL          UPPER         MARGINAL
+
+Victoria         .Queensland.train   .s1          .             1.0000         1.0000   -1.313581E+8      
+Victoria         .Queensland.train   .s2          .             1.0000         1.0000   -1.298236E+8      
+Victoria         .Queensland.train   .s3          .              .             1.0000         EPS         
+Victoria         .Queensland.airplane.s1          .             1.0000         1.0000   -1.313532E+8      
+Victoria         .Queensland.airplane.s2          .             1.0000         1.0000   -1.288287E+8      
+Victoria         .Queensland.airplane.s3          .              .             1.0000         EPS         
+Victoria         .Victoria  .train   .s1          .             1.0000         1.0000   -5.481960E+7      
+Victoria         .Victoria  .train   .s2          .             1.0000         1.0000   -5.495710E+7      
+Victoria         .Victoria  .train   .s3          .              .             1.0000         EPS         
+Victoria         .Victoria  .airplane.s1          .             1.0000         1.0000   -5.480475E+7      
+Victoria         .Victoria  .airplane.s2          .             1.0000         1.0000   -5.449675E+7      
+Victoria         .Victoria  .airplane.s3          .              .             1.0000         EPS         
+Western_Australia.Queensland.train   .s1          .             1.0000         1.0000   -1.313466E+8      
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 43
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Solution Report     SOLVE supplychain Using MIP From line 655
+
+
+     VAR VGG  1 if there is a flow between warehouse w and end-user j through mode k in scenario s, 0 otherwise
+
+                                                LOWER          LEVEL          UPPER         MARGINAL
+
+Western_Australia.Queensland.train   .s2          .             1.0000         1.0000   -1.293666E+8      
+Western_Australia.Queensland.train   .s3          .              .             1.0000         EPS         
+Western_Australia.Queensland.airplane.s1          .             1.0000         1.0000   -1.313417E+8      
+Western_Australia.Queensland.airplane.s2          .             1.0000         1.0000   -1.283717E+8      
+Western_Australia.Queensland.airplane.s3          .              .             1.0000         EPS         
+Western_Australia.Victoria  .train   .s1          .             1.0000         1.0000   -5.478660E+7      
+Western_Australia.Victoria  .train   .s2          .             1.0000         1.0000   -5.403310E+7      
+Western_Australia.Victoria  .train   .s3          .              .             1.0000         EPS         
+Western_Australia.Victoria  .airplane.s1          .             1.0000         1.0000   -5.478110E+7      
+Western_Australia.Victoria  .airplane.s2          .             1.0000         1.0000   -5.369760E+7      
+Western_Australia.Victoria  .airplane.s3          .              .             1.0000         EPS         
+
+---- VAR VGGG  1 if there is a flow between plant m and end-user j through mode k in scenario s, 0 otherwise
+
+                                              LOWER          LEVEL          UPPER         MARGINAL
+
+New_South_Wales.Queensland.train   .s1          .             1.0000         1.0000   -1.313268E+8      
+New_South_Wales.Queensland.train   .s2          .             1.0000         1.0000   -1.293468E+8      
+New_South_Wales.Queensland.train   .s3          .              .             1.0000         EPS         
+New_South_Wales.Queensland.airplane.s1          .             1.0000         1.0000   -1.313219E+8      
+New_South_Wales.Queensland.airplane.s2          .             1.0000         1.0000   -1.283519E+8      
+New_South_Wales.Queensland.airplane.s3          .              .             1.0000         EPS         
+New_South_Wales.Victoria  .train   .s1          .             1.0000         1.0000   -5.478110E+7      
+New_South_Wales.Victoria  .train   .s2          .             1.0000         1.0000   -5.428610E+7      
+New_South_Wales.Victoria  .train   .s3          .              .             1.0000         EPS         
+New_South_Wales.Victoria  .airplane.s1          .             1.0000         1.0000   -5.477560E+7      
+New_South_Wales.Victoria  .airplane.s2          .             1.0000         1.0000   -5.395060E+7      
+New_South_Wales.Victoria  .airplane.s3          .              .             1.0000         EPS         
+Victoria       .Queensland.train   .s1          .             1.0000         1.0000   -1.313598E+8      
+Victoria       .Queensland.train   .s2          .             1.0000         1.0000   -1.298748E+8      
+Victoria       .Queensland.train   .s3          .              .             1.0000         EPS         
+Victoria       .Queensland.airplane.s1          .             1.0000         1.0000   -1.313549E+8      
+Victoria       .Queensland.airplane.s2          .             1.0000         1.0000   -1.288799E+8      
+Victoria       .Queensland.airplane.s3          .              .             1.0000         EPS         
+Victoria       .Victoria  .train   .s1          .             1.0000         1.0000   -5.482125E+7      
+Victoria       .Victoria  .train   .s2          .             1.0000         1.0000   -5.500825E+7      
+Victoria       .Victoria  .train   .s3          .              .             1.0000         EPS         
+Victoria       .Victoria  .airplane.s1          .             1.0000         1.0000   -5.482125E+7      
+Victoria       .Victoria  .airplane.s2          .             1.0000         1.0000   -5.456275E+7      
+Victoria       .Victoria  .airplane.s3          .              .             1.0000         EPS         
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF      5.2751290E+9        +INF             .          
+
+  z  overall SCND costs at strategic and tactical level
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 44
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+Solution Report     SOLVE supplychain Using MIP From line 655
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 45
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+E x e c u t i o n
+
+
+----    658 VARIABLE VF.L  1 if manufacturing plant m with technology h and capacity u is estimated 0 otherwise
+
+                                small
+
+New_South_Wales.pollutant       1.000
+Victoria       .pollutant       1.000
+
+
+----    660 VARIABLE VFF.L  1 if warehouse w with capacity level v is estimated, 0 otherwise
+
+                        small
+
+Victoria                1.000
+Western_Australia       1.000
+
+
+----    662 VARIABLE VFFF.L  1 if supplier n is selected, 0 otherwise
+
+South_Australia 1.000
+
+
+----    664 VARIABLE VG.L  1 if there is a flow between plant m and warehouse w through mode k in scenario s , 0 otherwise
+
+INDEX 1 = New_South_Wales
+
+                                    s2
+
+Western_Australia.train          1.000
+
+INDEX 1 = Victoria
+
+                                    s1          s2
+
+Victoria         .train          1.000       1.000
+Western_Australia.train          1.000       1.000
+
+
+----    666 VARIABLE VGG.L  1 if there is a flow between warehouse w and end-user j through mode k in scenario s, 0 otherwise
+
+INDEX 1 = Victoria
+
+                             s1          s2
+
+Queensland.train          1.000       1.000
+Queensland.airplane       1.000       1.000
+Victoria  .train          1.000       1.000
+Victoria  .airplane       1.000       1.000
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 46
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+E x e c u t i o n
+
+
+        666 VARIABLE VGG.L  1 if there is a flow between warehouse w and end-user j through mode k in scenario s, 0 otherwise
+
+INDEX 1 = Western_Australia
+
+                             s1          s2
+
+Queensland.train          1.000       1.000
+Queensland.airplane       1.000       1.000
+Victoria  .train          1.000       1.000
+Victoria  .airplane       1.000       1.000
+
+
+----    668 VARIABLE VGGG.L  1 if there is a flow between plant m and end-user j through mode k in scenario s, 0 otherwise
+
+INDEX 1 = New_South_Wales
+
+                             s1          s2
+
+Queensland.train          1.000       1.000
+Queensland.airplane       1.000       1.000
+Victoria  .train          1.000       1.000
+Victoria  .airplane       1.000       1.000
+
+INDEX 1 = Victoria
+
+                             s1          s2
+
+Queensland.train          1.000       1.000
+Queensland.airplane       1.000       1.000
+Victoria  .train          1.000       1.000
+Victoria  .airplane       1.000       1.000
+
+
+----    670 VARIABLE VQ.L  amount of product i produced in plant m with technology h in scenario s
+
+INDEX 1 = product1
+
+                                   s1          s2
+
+New_South_Wales.pollutant   33333.333   66666.667
+Victoria       .pollutant   33333.333
+
+INDEX 1 = product2
+
+                                   s1          s2
+
+New_South_Wales.pollutant  100000.000  100000.000
+Victoria       .pollutant  500000.000  500000.000
+
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 47
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+E x e c u t i o n
+
+
+----    671 VARIABLE VR.L  amount of raw material r shipped from supplier n to plant m in scenario s
+
+INDEX 1 = r1
+
+                                         s1          s2
+
+South_Australia.New_South_Wales  133333.333  166666.667
+South_Australia.Victoria         533333.333  500000.000
+
+INDEX 1 = r2
+
+                                         s1          s2
+
+South_Australia.New_South_Wales  133333.333  166666.667
+South_Australia.Victoria         533333.333  500000.000
+
+
+----    672 VARIABLE VL.L  amount of product i shipped from plant m to warehouse w through technology k in scenario s
+
+INDEX 1 = product1  INDEX 2 = New_South_Wales
+
+                                    s2
+
+Western_Australia.train      33333.333
+
+INDEX 1 = product1  INDEX 2 = Victoria
+
+                                    s1
+
+Western_Australia.train      33333.333
+
+INDEX 1 = product2  INDEX 2 = Victoria
+
+                                    s1          s2
+
+Victoria         .train     200000.000  200000.000
+Western_Australia.train     100000.000  100000.000
+
+
+----    673 VARIABLE VLL.L  amount of product i shipped from warehouse w through technology k in scenario s
+
+INDEX 1 = product1  INDEX 2 = Western_Australia
+
+                             s1          s2
+
+Victoria  .train      16666.667   16666.667
+Victoria  .airplane   16666.667   16666.667
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 48
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+E x e c u t i o n
+
+
+        673 VARIABLE VLL.L  amount of product i shipped from warehouse w through technology k in scenario s
+
+INDEX 1 = product2  INDEX 2 = Victoria
+
+                             s1          s2
+
+Queensland.train      50000.000   50000.000
+Queensland.airplane   50000.000   50000.000
+Victoria  .train      50000.000   50000.000
+Victoria  .airplane   50000.000   50000.000
+
+INDEX 1 = product2  INDEX 2 = Western_Australia
+
+                             s1          s2
+
+Queensland.train      50000.000   50000.000
+Queensland.airplane   50000.000   50000.000
+
+
+----    674 VARIABLE VLLL.L  amount of product i shipped from plant m to end-user j through technology k in scenario s
+
+INDEX 1 = product1  INDEX 2 = New_South_Wales
+
+                             s1          s2
+
+Victoria  .train      16666.667   16666.667
+Victoria  .airplane   16666.667   16666.667
+
+INDEX 1 = product2  INDEX 2 = New_South_Wales
+
+                             s1          s2
+
+Queensland.train      50000.000   50000.000
+Queensland.airplane   50000.000   50000.000
+
+INDEX 1 = product2  INDEX 2 = Victoria
+
+                             s1          s2
+
+Queensland.train      50000.000   50000.000
+Queensland.airplane   50000.000   50000.000
+Victoria  .train      50000.000   50000.000
+Victoria  .airplane   50000.000   50000.000
+
+
+----    675 VARIABLE VO.L  amount of shortage for product i in end-user j in scenario s
+
+                             s1          s2
+
+product1.Queensland  400000.000  400000.000
+product1.Victoria    233333.333  233333.333
+product2.Queensland  200000.000  200000.000
+
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  05/23/18 12:36:29 Page 49
+green supply chain, from the paper Green supply chain network design with stochastic demand and carbon price.
+E x e c u t i o n
+
+
+----    676 VARIABLE VE.L  Net number of carbon credits traded in scenario s
+
+s1 266666.667,    s2 254666.667,    s3 -10000.000
+
+
+
+EXECUTION TIME       =        0.008 SECONDS      3 MB  24.9.2 r64480 DEX-DEG
+
+
+USER: Small MUD - 5 User License Generic             S160905:1044AO-GEN
+      IIASA, Information and Communication Technologies Dep.      DC216
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /Users/renhongtao/gamsmodel/supply_chain_small/supplychain.gms
+Output     /Users/renhongtao/gamsmodel/supply_chain_small/supplychain.lst
