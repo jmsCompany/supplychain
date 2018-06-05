@@ -1,4 +1,4 @@
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 14:56:38 Page 1
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 19:33:26 Page 1
 'pvc model for ANOR journal'
 C o m p i l a t i o n
 
@@ -56,7 +56,7 @@ C o m p i l a t i o n
   54    /
   55        plant_1     7550000
   56        plant_2     9475000
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 14:56:38 Page 2
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 19:33:26 Page 2
 'pvc model for ANOR journal'
 C o m p i l a t i o n
 
@@ -114,7 +114,7 @@ C o m p i l a t i o n
  107        PVC-oil          .plant_3    .rail      .15
  108        PVC-oil          .plant_3    .barge     .17
  109        PVC-calcium      .plant_1    .road      .53
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 14:56:38 Page 3
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 19:33:26 Page 3
 'pvc model for ANOR journal'
 C o m p i l a t i o n
 
@@ -172,7 +172,7 @@ C o m p i l a t i o n
  160    sfdis(s,f,t)    'distance (km) from supplier s to plant f in transport mode t'
  161    /
  162        PVC-oil          .plant_1    .road      300
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 14:56:38 Page 4
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 19:33:26 Page 4
 'pvc model for ANOR journal'
 C o m p i l a t i o n
 
@@ -230,7 +230,7 @@ C o m p i l a t i o n
  213        warehouse_2  .customer_1    .road      110
  214        warehouse_2  .customer_1    .rail      330
  215        warehouse_2  .customer_1    .barge     660
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 14:56:38 Page 5
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 19:33:26 Page 5
 'pvc model for ANOR journal'
 C o m p i l a t i o n
 
@@ -288,7 +288,7 @@ C o m p i l a t i o n
  266   
  267  variable
  268   
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 14:56:38 Page 6
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 19:33:26 Page 6
 'pvc model for ANOR journal'
 C o m p i l a t i o n
 
@@ -331,9 +331,9 @@ C o m p i l a t i o n
  304   
  305  row1(c,p)        '仓库运输到客户的产品量必须等于客户需求量 （假设Just in Time 库存模式）'
  306   
- 307  row2(p,w)        '入库等于出库'
+ 307  row2(p,w)        '产品入库量等于出库到客户的数量'
  308   
- 309  row3(p)          '产量大于需求量'
+ 309  row3(p)          '产量等于需求量'
  310   
  311  row4(f)          '对于所有工厂，原材料满足生产'
  312   
@@ -343,66 +343,84 @@ C o m p i l a t i o n
  316   
  317  row7(w)          '仓库容量约束'
  318   
- 319   
- 320  ;
- 321   
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 14:56:38 Page 7
+ 319  row8(s,f)        '购买的原材料必须运到工厂'
+ 320   
+ 321  row9(f)          '运到工厂的等于运出到仓库的'
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 19:33:26 Page 7
 'pvc model for ANOR journal'
 C o m p i l a t i o n
 
 
  322   
- 323  suppliercost .. sc =e= sum((s,f), cp*sem(s)*VRP(s,f))
- 324                        +sum((s,f,t),sfdis(s,f,t)*sfcost(s,f,t)*VRSF(s,f,t))
- 325                        +sum((s,f,t),cp*tem(t)*sfdis(s,f,t)*VRSF(s,f,t));
+ 323   
+ 324   
+ 325  ;
  326   
- 327  plantcost..     pc =e= sum((s,f), sprc(s)*VRP(s,f))
- 328                        +sum((p,f), pcep(p)*VPS(p,f))
- 329                        +sum((p,f), cp*pemp(p)*VPS(p,f))
- 330                        +sum(f, fce(f))
- 331                        +sum(w, wce(w))
- 332                        +sum((p,f,w,t), wcep(w)*VPFW(p,f,w,t))
- 333                        +sum((p,f,w,t),fwcost(f,w,t)*fwdis(f,w,t)*VPFW(p,f,w,t))
- 334                        +sum((p,w,c,t),wccost(w,c,t)*wcdis(w,c,t)*VPWC(p,w,c,t))
- 335                        +sum((p,f,w,t),cp*tem(t)*fwdis(f,w,t)*VPFW(p,f,w,t))
- 336                        +sum((p,w,c,t),cp*tem(t)*wcdis(w,c,t)*VPWC(p,w,c,t));
- 337   
- 338  cost ..         z =e=  sc + pc;
- 339   
- 340  income..        icm =e= sum((p,f), pup(p)*VPS(p,f));
- 341   
- 342  profit ..       pf =e=  icm-pc;
- 343   
- 344  row1(c,p)..     dmcp(c,p) =e= sum((w,t),VPWC(p,w,c,t));
- 345   
- 346  row2(p,w)..    sum((c,t),VPWC(p,w,c,t)) =e= sum((f,t),VPFW(p,f,w,t));
- 347   
- 348  row3(p)..       sum(f, VPS(p,f)) =g= sum(c, dmcp(c,p));
- 349   
- 350  row4(f) ..      sum(s,lostper*VRP(s,f)) =g= sum(p,VPS(p,f));
- 351   
- 352  row5(s)..       scap(s) =g= sum(f,VRP(s,f));
- 353   
- 354  row6(f)..       fcap(f) =g= sum((p,w,t), VPFW(p,f,w,t));
- 355   
- 356  row7(w)..       wcap(w) =g= sum((p,f,t), VPFW(p,f,w,t));
- 357   
+ 327   
+ 328  suppliercost .. sc =e= sum((s,f), cp*sem(s)*VRP(s,f))
+ 329                        +sum((s,f,t),sfdis(s,f,t)*sfcost(s,f,t)*VRSF(s,f,t))
+ 330                        +sum((s,f,t),cp*tem(t)*sfdis(s,f,t)*VRSF(s,f,t));
+ 331   
+ 332  plantcost..     pc =e= sum((s,f), sprc(s)*VRP(s,f))
+ 333                        +sum((p,f), pcep(p)*VPS(p,f))
+ 334                        +sum((p,f), cp*pemp(p)*VPS(p,f))
+ 335                        +sum(f, fce(f))
+ 336                        +sum(w, wce(w))
+ 337                        +sum((p,f,w,t), wcep(w)*VPFW(p,f,w,t))
+ 338                        +sum((p,f,w,t),fwcost(f,w,t)*fwdis(f,w,t)*VPFW(p,f,w,t))
+ 339                        +sum((p,w,c,t),wccost(w,c,t)*wcdis(w,c,t)*VPWC(p,w,c,t))
+ 340                        +sum((p,f,w,t),cp*tem(t)*fwdis(f,w,t)*VPFW(p,f,w,t))
+ 341                        +sum((p,w,c,t),cp*tem(t)*wcdis(w,c,t)*VPWC(p,w,c,t));
+ 342   
+ 343  cost ..         z =e=  sc + pc;
+ 344   
+ 345  income..        icm =e= sum((p,f), pup(p)*VPS(p,f));
+ 346   
+ 347  profit ..       pf =e=  icm-pc;
+ 348   
+ 349  row1(c,p)..     dmcp(c,p) =e= sum((w,t),VPWC(p,w,c,t));
+ 350   
+ 351  row2(p,w)..    sum((c,t),VPWC(p,w,c,t)) =e= sum((f,t),VPFW(p,f,w,t));
+ 352   
+ 353  row3(p)..       sum(f, VPS(p,f)) =e= sum(c, dmcp(c,p));
+ 354   
+ 355  row4(f) ..      sum(s,lostper*VRP(s,f)) =e= sum(p,VPS(p,f));
+ 356   
+ 357  row5(s)..       scap(s) =g= sum(f,VRP(s,f));
  358   
- 359  Model supplychain / ALL /;
+ 359  row6(f)..       fcap(f) =g= sum((p,w,t), VPFW(p,f,w,t));
  360   
- 361  solve supplychain using LP minimizing z;
+ 361  row7(w)..       wcap(w) =g= sum((p,f,t), VPFW(p,f,w,t));
  362   
- 363  display pf.l;
- 364  display pc.l;
- 365  display sc.l;
- 366  display VRP.l;
- 367  display icm.l;
+ 363  row8(s,f)..     VRP(s,f) =e= sum(t, VRSF(s,f,t));
+ 364   
+ 365  row9(f)..      sum(s,lostper*VRP(s,f)) =e= sum((p,w,t),VPFW(p,f,w,t));
+ 366   
+ 367   
+ 368  Model supplychain / ALL /;
+ 369   
+ 370  solve supplychain using LP minimizing z;
+ 371   
+ 372  display pf.l;
+ 373  display pc.l;
+ 374  display sc.l;
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 19:33:26 Page 8
+'pvc model for ANOR journal'
+C o m p i l a t i o n
+
+
+ 375  display VRP.l;
+ 376  display icm.l;
+ 377  display VRSF.l;
+ 378  display VPFW.l;
+ 379  display VPS.l;
+ 380  display VPWC.l;
 
 
 COMPILATION TIME     =        0.002 SECONDS      3 MB  24.9.2 r64480 DEX-DEG
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 14:56:38 Page 8
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 19:33:26 Page 9
 'pvc model for ANOR journal'
-Equation Listing    SOLVE supplychain Using LP From line 361
+Equation Listing    SOLVE supplychain Using LP From line 370
 
 
 ---- cost  =E=  objective function
@@ -458,9 +476,9 @@ plantcost..  - 7100*VRP(PVC-oil,plant_1) - 7100*VRP(PVC-oil,plant_2) - 7100*VRP(
       - 166.75*VPWC(p_75,warehouse_2,customer_2,rail) - 214*VPWC(p_75,warehouse_2,customer_2,barge) - 71.7*VPWC(p_110,warehouse_1,customer_1,road) - 100.05*VPWC(p_110,warehouse_1,customer_1,rail) - 128.4*VPWC(p_110,warehouse_1,customer_1,barge)
      
       - 107.55*VPWC(p_110,warehouse_1,customer_2,road) - 150.075*VPWC(p_110,warehouse_1,customer_2,rail) - 192.6*VPWC(p_110,warehouse_1,customer_2,barge) - 78.87*VPWC(p_110,warehouse_2,customer_1,road) - 110.055*VPWC(p_110,warehouse_2,customer_1,rail)
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                   06/05/18 14:56:38 Page 9
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 10
 'pvc model for ANOR journal'
-Equation Listing    SOLVE supplychain Using LP From line 361
+Equation Listing    SOLVE supplychain Using LP From line 370
 
 
      plantcost  =E=  工厂成本由   1  3 3a 4 5 6 8 9 11 12 组成     
@@ -500,7 +518,7 @@ row1(customer_1,p_110)..  - VPWC(p_110,warehouse_1,customer_1,road) - VPWC(p_110
 REMAINING 3 ENTRIES SKIPPED
 
 
----- row2  =E=  入库等于出库
+---- row2  =E=  产品入库量等于出库到客户的数量
 
 row2(p_50,warehouse_1)..  - VPFW(p_50,plant_1,warehouse_1,road) - VPFW(p_50,plant_1,warehouse_1,rail) - VPFW(p_50,plant_1,warehouse_1,barge) - VPFW(p_50,plant_2,warehouse_1,road) - VPFW(p_50,plant_2,warehouse_1,rail) - VPFW(p_50,plant_2,warehouse_1,barge)
      
@@ -514,12 +532,12 @@ row2(p_50,warehouse_2)..  - VPFW(p_50,plant_1,warehouse_2,road) - VPFW(p_50,plan
      
       + VPWC(p_50,warehouse_2,customer_2,road) + VPWC(p_50,warehouse_2,customer_2,rail) + VPWC(p_50,warehouse_2,customer_2,barge) =E= 0 ; (LHS = 0)
      
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 14:56:38 Page 10
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 11
 'pvc model for ANOR journal'
-Equation Listing    SOLVE supplychain Using LP From line 361
+Equation Listing    SOLVE supplychain Using LP From line 370
 
 
-     row2  =E=  入库等于出库
+     row2  =E=  产品入库量等于出库到客户的数量
 
 row2(p_75,warehouse_1)..  - VPFW(p_75,plant_1,warehouse_1,road) - VPFW(p_75,plant_1,warehouse_1,rail) - VPFW(p_75,plant_1,warehouse_1,barge) - VPFW(p_75,plant_2,warehouse_1,road) - VPFW(p_75,plant_2,warehouse_1,rail) - VPFW(p_75,plant_2,warehouse_1,barge)
      
@@ -530,22 +548,22 @@ row2(p_75,warehouse_1)..  - VPFW(p_75,plant_1,warehouse_1,road) - VPFW(p_75,plan
 REMAINING 3 ENTRIES SKIPPED
 
 
----- row3  =G=  产量大于需求量
+---- row3  =E=  产量等于需求量
 
-row3(p_50)..  VPS(p_50,plant_1) + VPS(p_50,plant_2) + VPS(p_50,plant_3) =G= 45264 ; (LHS = 0, INFES = 45264 ****)
+row3(p_50)..  VPS(p_50,plant_1) + VPS(p_50,plant_2) + VPS(p_50,plant_3) =E= 45264 ; (LHS = 0, INFES = 45264 ****)
      
-row3(p_75)..  VPS(p_75,plant_1) + VPS(p_75,plant_2) + VPS(p_75,plant_3) =G= 59842 ; (LHS = 0, INFES = 59842 ****)
+row3(p_75)..  VPS(p_75,plant_1) + VPS(p_75,plant_2) + VPS(p_75,plant_3) =E= 59842 ; (LHS = 0, INFES = 59842 ****)
      
-row3(p_110)..  VPS(p_110,plant_1) + VPS(p_110,plant_2) + VPS(p_110,plant_3) =G= 24181 ; (LHS = 0, INFES = 24181 ****)
+row3(p_110)..  VPS(p_110,plant_1) + VPS(p_110,plant_2) + VPS(p_110,plant_3) =E= 24181 ; (LHS = 0, INFES = 24181 ****)
      
 
----- row4  =G=  对于所有工厂，原材料满足生产
+---- row4  =E=  对于所有工厂，原材料满足生产
 
-row4(plant_1)..  0.7*VRP(PVC-oil,plant_1) + 0.7*VRP(PVC-calcium,plant_1) - VPS(p_50,plant_1) - VPS(p_75,plant_1) - VPS(p_110,plant_1) =G= 0 ; (LHS = 0)
+row4(plant_1)..  0.7*VRP(PVC-oil,plant_1) + 0.7*VRP(PVC-calcium,plant_1) - VPS(p_50,plant_1) - VPS(p_75,plant_1) - VPS(p_110,plant_1) =E= 0 ; (LHS = 0)
      
-row4(plant_2)..  0.7*VRP(PVC-oil,plant_2) + 0.7*VRP(PVC-calcium,plant_2) - VPS(p_50,plant_2) - VPS(p_75,plant_2) - VPS(p_110,plant_2) =G= 0 ; (LHS = 0)
+row4(plant_2)..  0.7*VRP(PVC-oil,plant_2) + 0.7*VRP(PVC-calcium,plant_2) - VPS(p_50,plant_2) - VPS(p_75,plant_2) - VPS(p_110,plant_2) =E= 0 ; (LHS = 0)
      
-row4(plant_3)..  0.7*VRP(PVC-oil,plant_3) + 0.7*VRP(PVC-calcium,plant_3) - VPS(p_50,plant_3) - VPS(p_75,plant_3) - VPS(p_110,plant_3) =G= 0 ; (LHS = 0)
+row4(plant_3)..  0.7*VRP(PVC-oil,plant_3) + 0.7*VRP(PVC-calcium,plant_3) - VPS(p_50,plant_3) - VPS(p_75,plant_3) - VPS(p_110,plant_3) =E= 0 ; (LHS = 0)
      
 
 ---- row5  =G=  供应商最大产能约束
@@ -572,9 +590,9 @@ row6(plant_2)..  - VPFW(p_50,plant_2,warehouse_1,road) - VPFW(p_50,plant_2,wareh
       - VPFW(p_110,plant_2,warehouse_1,road) - VPFW(p_110,plant_2,warehouse_1,rail) - VPFW(p_110,plant_2,warehouse_1,barge) - VPFW(p_110,plant_2,warehouse_2,road) - VPFW(p_110,plant_2,warehouse_2,rail) - VPFW(p_110,plant_2,warehouse_2,barge) =G= -85000 ;
      
       (LHS = 0)
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 14:56:38 Page 11
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 12
 'pvc model for ANOR journal'
-Equation Listing    SOLVE supplychain Using LP From line 361
+Equation Listing    SOLVE supplychain Using LP From line 370
 
 
      row6  =G=  工厂产能约束
@@ -610,9 +628,54 @@ row7(warehouse_2)..  - VPFW(p_50,plant_1,warehouse_2,road) - VPFW(p_50,plant_1,w
      
       - VPFW(p_110,plant_3,warehouse_2,road) - VPFW(p_110,plant_3,warehouse_2,rail) - VPFW(p_110,plant_3,warehouse_2,barge) =G= -80000 ; (LHS = 0)
      
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 14:56:38 Page 12
+
+---- row8  =E=  购买的原材料必须运到工厂
+
+row8(PVC-oil,plant_1)..  VRP(PVC-oil,plant_1) - VRSF(PVC-oil,plant_1,road) - VRSF(PVC-oil,plant_1,rail) - VRSF(PVC-oil,plant_1,barge) =E= 0 ; (LHS = 0)
+     
+row8(PVC-oil,plant_2)..  VRP(PVC-oil,plant_2) - VRSF(PVC-oil,plant_2,road) - VRSF(PVC-oil,plant_2,rail) - VRSF(PVC-oil,plant_2,barge) =E= 0 ; (LHS = 0)
+     
+row8(PVC-oil,plant_3)..  VRP(PVC-oil,plant_3) - VRSF(PVC-oil,plant_3,road) - VRSF(PVC-oil,plant_3,rail) - VRSF(PVC-oil,plant_3,barge) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- row9  =E=  运到工厂的等于运出到仓库的
+
+row9(plant_1)..  0.7*VRP(PVC-oil,plant_1) + 0.7*VRP(PVC-calcium,plant_1) - VPFW(p_50,plant_1,warehouse_1,road) - VPFW(p_50,plant_1,warehouse_1,rail) - VPFW(p_50,plant_1,warehouse_1,barge) - VPFW(p_50,plant_1,warehouse_2,road)
+     
+      - VPFW(p_50,plant_1,warehouse_2,rail) - VPFW(p_50,plant_1,warehouse_2,barge) - VPFW(p_75,plant_1,warehouse_1,road) - VPFW(p_75,plant_1,warehouse_1,rail) - VPFW(p_75,plant_1,warehouse_1,barge) - VPFW(p_75,plant_1,warehouse_2,road)
+     
+      - VPFW(p_75,plant_1,warehouse_2,rail) - VPFW(p_75,plant_1,warehouse_2,barge) - VPFW(p_110,plant_1,warehouse_1,road) - VPFW(p_110,plant_1,warehouse_1,rail) - VPFW(p_110,plant_1,warehouse_1,barge) - VPFW(p_110,plant_1,warehouse_2,road)
+     
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 13
 'pvc model for ANOR journal'
-Column Listing      SOLVE supplychain Using LP From line 361
+Equation Listing    SOLVE supplychain Using LP From line 370
+
+
+     row9  =E=  运到工厂的等于运出到仓库的     
+     
+      - VPFW(p_110,plant_1,warehouse_2,rail) - VPFW(p_110,plant_1,warehouse_2,barge) =E= 0 ; (LHS = 0)
+     
+row9(plant_2)..  0.7*VRP(PVC-oil,plant_2) + 0.7*VRP(PVC-calcium,plant_2) - VPFW(p_50,plant_2,warehouse_1,road) - VPFW(p_50,plant_2,warehouse_1,rail) - VPFW(p_50,plant_2,warehouse_1,barge) - VPFW(p_50,plant_2,warehouse_2,road)
+     
+      - VPFW(p_50,plant_2,warehouse_2,rail) - VPFW(p_50,plant_2,warehouse_2,barge) - VPFW(p_75,plant_2,warehouse_1,road) - VPFW(p_75,plant_2,warehouse_1,rail) - VPFW(p_75,plant_2,warehouse_1,barge) - VPFW(p_75,plant_2,warehouse_2,road)
+     
+      - VPFW(p_75,plant_2,warehouse_2,rail) - VPFW(p_75,plant_2,warehouse_2,barge) - VPFW(p_110,plant_2,warehouse_1,road) - VPFW(p_110,plant_2,warehouse_1,rail) - VPFW(p_110,plant_2,warehouse_1,barge) - VPFW(p_110,plant_2,warehouse_2,road)
+     
+      - VPFW(p_110,plant_2,warehouse_2,rail) - VPFW(p_110,plant_2,warehouse_2,barge) =E= 0 ; (LHS = 0)
+     
+row9(plant_3)..  0.7*VRP(PVC-oil,plant_3) + 0.7*VRP(PVC-calcium,plant_3) - VPFW(p_50,plant_3,warehouse_1,road) - VPFW(p_50,plant_3,warehouse_1,rail) - VPFW(p_50,plant_3,warehouse_1,barge) - VPFW(p_50,plant_3,warehouse_2,road)
+     
+      - VPFW(p_50,plant_3,warehouse_2,rail) - VPFW(p_50,plant_3,warehouse_2,barge) - VPFW(p_75,plant_3,warehouse_1,road) - VPFW(p_75,plant_3,warehouse_1,rail) - VPFW(p_75,plant_3,warehouse_1,barge) - VPFW(p_75,plant_3,warehouse_2,road)
+     
+      - VPFW(p_75,plant_3,warehouse_2,rail) - VPFW(p_75,plant_3,warehouse_2,barge) - VPFW(p_110,plant_3,warehouse_1,road) - VPFW(p_110,plant_3,warehouse_1,rail) - VPFW(p_110,plant_3,warehouse_1,barge) - VPFW(p_110,plant_3,warehouse_2,road)
+     
+      - VPFW(p_110,plant_3,warehouse_2,rail) - VPFW(p_110,plant_3,warehouse_2,barge) =E= 0 ; (LHS = 0)
+     
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 14
+'pvc model for ANOR journal'
+Column Listing      SOLVE supplychain Using LP From line 370
 
 
 ---- VRP  amount of raw material (tons) purchased from supplier s in plant f
@@ -623,6 +686,8 @@ VRP(PVC-oil,plant_1)
     -7100       plantcost
         0.7     row4(plant_1)
        -1       row5(PVC-oil)
+        1       row8(PVC-oil,plant_1)
+        0.7     row9(plant_1)
 
 VRP(PVC-oil,plant_2)
                 (.LO, .L, .UP, .M = 0, 0, +INF, 0)
@@ -630,6 +695,8 @@ VRP(PVC-oil,plant_2)
     -7100       plantcost
         0.7     row4(plant_2)
        -1       row5(PVC-oil)
+        1       row8(PVC-oil,plant_2)
+        0.7     row9(plant_2)
 
 VRP(PVC-oil,plant_3)
                 (.LO, .L, .UP, .M = 0, 0, +INF, 0)
@@ -637,6 +704,8 @@ VRP(PVC-oil,plant_3)
     -7100       plantcost
         0.7     row4(plant_3)
        -1       row5(PVC-oil)
+        1       row8(PVC-oil,plant_3)
+        0.7     row9(plant_3)
 
 REMAINING 3 ENTRIES SKIPPED
 
@@ -645,16 +714,23 @@ REMAINING 3 ENTRIES SKIPPED
 VRSF(PVC-oil,plant_1,road)
                 (.LO, .L, .UP, .M = 0, 0, +INF, 0)
      -161.1     suppliercost
+       -1       row8(PVC-oil,plant_1)
 
 VRSF(PVC-oil,plant_1,rail)
                 (.LO, .L, .UP, .M = 0, 0, +INF, 0)
       -92.1     suppliercost
+       -1       row8(PVC-oil,plant_1)
 
 VRSF(PVC-oil,plant_1,barge)
                 (.LO, .L, .UP, .M = 0, 0, +INF, 0)
      -156.6     suppliercost
+       -1       row8(PVC-oil,plant_1)
 
 REMAINING 15 ENTRIES SKIPPED
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 15
+'pvc model for ANOR journal'
+Column Listing      SOLVE supplychain Using LP From line 370
+
 
 ---- VPFW  amount of product p (tons) shipped from plant f to warehouse w with transport mode t
 
@@ -664,20 +740,15 @@ VPFW(p_50,plant_1,warehouse_1,road)
        -1       row2(p_50,warehouse_1)
        -1       row6(plant_1)
        -1       row7(warehouse_1)
+       -1       row9(plant_1)
 
 VPFW(p_50,plant_1,warehouse_1,rail)
                 (.LO, .L, .UP, .M = 0, 0, +INF, 0)
      -797.05    plantcost
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 14:56:38 Page 13
-'pvc model for ANOR journal'
-Column Listing      SOLVE supplychain Using LP From line 361
-
-
-     VPFW  amount of product p (tons) shipped from plant f to warehouse w with transport mode t
-
        -1       row2(p_50,warehouse_1)
        -1       row6(plant_1)
        -1       row7(warehouse_1)
+       -1       row9(plant_1)
 
 VPFW(p_50,plant_1,warehouse_1,barge)
                 (.LO, .L, .UP, .M = 0, 0, +INF, 0)
@@ -685,6 +756,7 @@ VPFW(p_50,plant_1,warehouse_1,barge)
        -1       row2(p_50,warehouse_1)
        -1       row6(plant_1)
        -1       row7(warehouse_1)
+       -1       row9(plant_1)
 
 REMAINING 51 ENTRIES SKIPPED
 
@@ -709,6 +781,10 @@ VPWC(p_50,warehouse_1,customer_1,barge)
         1       row2(p_50,warehouse_1)
 
 REMAINING 33 ENTRIES SKIPPED
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 16
+'pvc model for ANOR journal'
+Column Listing      SOLVE supplychain Using LP From line 370
+
 
 ---- VPS  amount of product p (tons) produced from plant f
 
@@ -725,13 +801,6 @@ VPS(p_50,plant_2)
    -11168       income
         1       row3(p_50)
        -1       row4(plant_2)
-
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 14:56:38 Page 14
-'pvc model for ANOR journal'
-Column Listing      SOLVE supplychain Using LP From line 361
-
-
-     VPS  amount of product p (tons) produced from plant f
 
 VPS(p_50,plant_3)
                 (.LO, .L, .UP, .M = 0, 0, +INF, 0)
@@ -765,6 +834,10 @@ pc
         1       plantcost
         1       profit
 
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 17
+'pvc model for ANOR journal'
+Column Listing      SOLVE supplychain Using LP From line 370
+
 
 ---- pf  profit of plants
 
@@ -780,39 +853,39 @@ icm
         1       income
        -1       profit
 
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 14:56:38 Page 15
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 18
 'pvc model for ANOR journal'
-Model Statistics    SOLVE supplychain Using LP From line 361
+Model Statistics    SOLVE supplychain Using LP From line 370
 
 
 MODEL STATISTICS
 
-BLOCKS OF EQUATIONS          12     SINGLE EQUATIONS           30
+BLOCKS OF EQUATIONS          14     SINGLE EQUATIONS           39
 BLOCKS OF VARIABLES          10     SINGLE VARIABLES          128
-NON ZERO ELEMENTS           411
+NON ZERO ELEMENTS           495
 
 
-GENERATION TIME      =        0.009 SECONDS      4 MB  24.9.2 r64480 DEX-DEG
+GENERATION TIME      =        0.026 SECONDS      4 MB  24.9.2 r64480 DEX-DEG
 
 
-EXECUTION TIME       =        0.009 SECONDS      4 MB  24.9.2 r64480 DEX-DEG
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 14:56:38 Page 16
+EXECUTION TIME       =        0.026 SECONDS      4 MB  24.9.2 r64480 DEX-DEG
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 19
 'pvc model for ANOR journal'
-Solution Report     SOLVE supplychain Using LP From line 361
+Solution Report     SOLVE supplychain Using LP From line 370
 
 
                S O L V E      S U M M A R Y
 
      MODEL   supplychain         OBJECTIVE  z
      TYPE    LP                  DIRECTION  MINIMIZE
-     SOLVER  CPLEX               FROM LINE  361
+     SOLVER  CPLEX               FROM LINE  370
 
 **** SOLVER STATUS     1 Normal Completion         
 **** MODEL STATUS      1 Optimal                   
-**** OBJECTIVE VALUE       1602773858.5287
+**** OBJECTIVE VALUE       1625715386.3859
 
- RESOURCE USAGE, LIMIT          0.010      1000.000
- ITERATION COUNT, LIMIT        17    2000000000
+ RESOURCE USAGE, LIMIT          0.047      1000.000
+ ITERATION COUNT, LIMIT        16    2000000000
 
 IBM ILOG CPLEX   24.9.2 r64480 Released Nov 14, 2017 DEG x86 64bit/Mac OS X   
 Cplex 12.7.1.0
@@ -820,9 +893,9 @@ Cplex 12.7.1.0
 Space for names approximately 0.01 Mb
 Use option 'names no' to turn use of names off
 LP status(1): optimal
-Cplex Time: 0.00sec (det. 0.13 ticks)
+Cplex Time: 0.02sec (det. 0.14 ticks)
 Optimal solution found.
-Objective :  1602773858.528714
+Objective :  1625715386.385857
 
 
                            LOWER          LEVEL          UPPER         MARGINAL
@@ -849,12 +922,12 @@ customer_1.p_110    -14095.0000    -14095.0000    -14095.0000      -850.2400
 customer_2.p_50     -25584.0000    -25584.0000    -25584.0000      -886.0900      
 customer_2.p_75     -25318.0000    -25318.0000    -25318.0000      -886.0900      
 customer_2.p_110    -10086.0000    -10086.0000    -10086.0000      -886.0900      
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 14:56:38 Page 17
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 20
 'pvc model for ANOR journal'
-Solution Report     SOLVE supplychain Using LP From line 361
+Solution Report     SOLVE supplychain Using LP From line 370
 
 
----- EQU row2  入库等于出库
+---- EQU row2  产品入库量等于出库到客户的数量
 
                          LOWER          LEVEL          UPPER         MARGINAL
 
@@ -865,36 +938,36 @@ p_75 .warehouse_2          .              .              .          -771.3700
 p_110.warehouse_1          .              .              .          -778.5400      
 p_110.warehouse_2          .              .              .          -771.3700      
 
----- EQU row3  产量大于需求量
+---- EQU row3  产量等于需求量
 
              LOWER          LEVEL          UPPER         MARGINAL
 
-p_50      45264.0000     45264.0000        +INF        11628.5964      
-p_75      59842.0000     59842.0000        +INF        11628.5934      
-p_110     24181.0000     24181.0000        +INF        11628.5904      
+p_50      45264.0000     45264.0000     45264.0000     11847.8821      
+p_75      59842.0000     59842.0000     59842.0000     11847.8791      
+p_110     24181.0000     24181.0000     24181.0000     11847.8761      
 
 ---- EQU row4  对于所有工厂，原材料满足生产
 
                LOWER          LEVEL          UPPER         MARGINAL
 
-plant_1          .              .            +INF        10928.5714      
-plant_2          .              .            +INF        10928.5714      
-plant_3          .              .            +INF        10928.5714      
+plant_1          .              .              .         11147.8571      
+plant_2          .              .              .         11147.8571      
+plant_3          .              .              .         11147.8571      
 
 ---- EQU row5  供应商最大产能约束
 
                    LOWER          LEVEL          UPPER         MARGINAL
 
-PVC-oil        -90000.0000    -90000.0000        +INF          360.0000      
+PVC-oil        -90000.0000    -90000.0000        +INF          390.7000      
 PVC-calcium   -120000.0000    -94695.7143        +INF             .          
 
 ---- EQU row6  工厂产能约束
 
                LOWER          LEVEL          UPPER         MARGINAL
 
-plant_1    -67800.0000    -67800.0000        +INF            1.5400      
-plant_2    -85000.0000    -18987.0000        +INF             .          
-plant_3    -42500.0000    -42500.0000        +INF            7.7000      
+plant_1    -67800.0000    -67800.0000        +INF           45.3971      
+plant_2    -85000.0000    -61487.0000        +INF             .          
+plant_3    -42500.0000          .            +INF             .          
 
 ---- EQU row7  仓库容量约束
 
@@ -902,44 +975,67 @@ plant_3    -42500.0000    -42500.0000        +INF            7.7000
 
 warehouse_1    -60000.0000    -49287.0000        +INF             .          
 warehouse_2    -80000.0000    -80000.0000        +INF           77.4300      
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 14:56:38 Page 18
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 21
 'pvc model for ANOR journal'
-Solution Report     SOLVE supplychain Using LP From line 361
+Solution Report     SOLVE supplychain Using LP From line 370
 
+
+---- EQU row8  购买的原材料必须运到工厂
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+PVC-oil    .plant_1          .              .              .           -92.1000      
+PVC-oil    .plant_2          .              .              .          -122.8000      
+PVC-oil    .plant_3          .              .              .          -153.5000      
+PVC-calcium.plant_1          .              .              .          -122.8000      
+PVC-calcium.plant_2          .              .              .          -153.5000      
+PVC-calcium.plant_3          .              .              .          -184.2000      
+
+---- EQU row9  运到工厂的等于运出到仓库的
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+plant_1          .              .              .           -43.8571      
+plant_2          .              .              .              .          
+plant_3          .              .              .             7.7000      
 
 ---- VAR VRP  amount of raw material (tons) purchased from supplier s in plant f
 
                            LOWER          LEVEL          UPPER         MARGINAL
 
-PVC-oil    .plant_1          .         90000.0000        +INF             .          
-PVC-oil    .plant_2          .              .            +INF            EPS         
-PVC-oil    .plant_3          .              .            +INF            EPS         
+PVC-oil    .plant_1          .          2161.4286        +INF             .          
+PVC-oil    .plant_2          .         87838.5714        +INF             .          
+PVC-oil    .plant_3          .              .            +INF           25.3100      
 PVC-calcium.plant_1          .         94695.7143        +INF             .          
 PVC-calcium.plant_2          .              .            +INF            EPS         
-PVC-calcium.plant_3          .              .            +INF            EPS         
+PVC-calcium.plant_3          .              .            +INF           25.3100      
 
 ---- VAR VRSF  amount of raw material (tons) shipped from supplier s to  plant f with transport mode t
 
                                  LOWER          LEVEL          UPPER         MARGINAL
 
-PVC-oil    .plant_1.road           .              .            +INF          161.1000      
-PVC-oil    .plant_1.rail           .              .            +INF           92.1000      
-PVC-oil    .plant_1.barge          .              .            +INF          156.6000      
-PVC-oil    .plant_2.road           .              .            +INF          214.8000      
-PVC-oil    .plant_2.rail           .              .            +INF          122.8000      
-PVC-oil    .plant_2.barge          .              .            +INF          208.8000      
-PVC-oil    .plant_3.road           .              .            +INF          268.5000      
-PVC-oil    .plant_3.rail           .              .            +INF          153.5000      
-PVC-oil    .plant_3.barge          .              .            +INF          261.0000      
-PVC-calcium.plant_1.road           .              .            +INF          214.8000      
-PVC-calcium.plant_1.rail           .              .            +INF          122.8000      
-PVC-calcium.plant_1.barge          .              .            +INF          208.8000      
-PVC-calcium.plant_2.road           .              .            +INF          268.5000      
-PVC-calcium.plant_2.rail           .              .            +INF          153.5000      
-PVC-calcium.plant_2.barge          .              .            +INF          261.0000      
-PVC-calcium.plant_3.road           .              .            +INF          322.2000      
-PVC-calcium.plant_3.rail           .              .            +INF          184.2000      
-PVC-calcium.plant_3.barge          .              .            +INF          313.2000      
+PVC-oil    .plant_1.road           .              .            +INF           69.0000      
+PVC-oil    .plant_1.rail           .          2161.4286        +INF             .          
+PVC-oil    .plant_1.barge          .              .            +INF           64.5000      
+PVC-oil    .plant_2.road           .              .            +INF           92.0000      
+PVC-oil    .plant_2.rail           .         87838.5714        +INF             .          
+PVC-oil    .plant_2.barge          .              .            +INF           86.0000      
+PVC-oil    .plant_3.road           .              .            +INF          115.0000      
+PVC-oil    .plant_3.rail           .              .            +INF             .          
+PVC-oil    .plant_3.barge          .              .            +INF          107.5000      
+PVC-calcium.plant_1.road           .              .            +INF           92.0000      
+PVC-calcium.plant_1.rail           .         94695.7143        +INF             .          
+PVC-calcium.plant_1.barge          .              .            +INF           86.0000      
+PVC-calcium.plant_2.road           .              .            +INF          115.0000      
+PVC-calcium.plant_2.rail           .              .            +INF             .          
+PVC-calcium.plant_2.barge          .              .            +INF          107.5000      
+PVC-calcium.plant_3.road           .              .            +INF          138.0000      
+PVC-calcium.plant_3.rail           .              .            +INF             .          
+PVC-calcium.plant_3.barge          .              .            +INF          129.0000      
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 22
+'pvc model for ANOR journal'
+Solution Report     SOLVE supplychain Using LP From line 370
+
 
 ---- VAR VPFW  amount of product p (tons) shipped from plant f to warehouse w with transport mode t
 
@@ -947,49 +1043,40 @@ PVC-calcium.plant_3.barge          .              .            +INF          313
 
 p_50 .plant_1.warehouse_1.road           .              .            +INF           54.4000      
 p_50 .plant_1.warehouse_1.rail           .              .            +INF           20.0500      
-p_50 .plant_1.warehouse_1.barge          .         12958.0000        +INF             .          
+p_50 .plant_1.warehouse_1.barge          .              .            +INF      2.273737E-13      
 p_50 .plant_1.warehouse_2.road           .              .            +INF          104.7000      
 p_50 .plant_1.warehouse_2.rail           .              .            +INF           37.0000      
-p_50 .plant_1.warehouse_2.barge          .         13319.0000        +INF             .          
+p_50 .plant_1.warehouse_2.barge          .              .            +INF      1.136868E-13      
 p_50 .plant_2.warehouse_1.road           .              .            +INF           59.4300      
 p_50 .plant_2.warehouse_1.rail           .              .            +INF           21.7450      
-p_50 .plant_2.warehouse_1.barge          .         18987.0000        +INF             .          
+p_50 .plant_2.warehouse_1.barge          .         33064.0000        +INF             .          
 p_50 .plant_2.warehouse_2.road           .              .            +INF          109.7300      
 p_50 .plant_2.warehouse_2.rail           .              .            +INF           38.6950      
-p_50 .plant_2.warehouse_2.barge          .              .            +INF      1.136868E-13      
+p_50 .plant_2.warehouse_2.barge          .         12200.0000        +INF             .          
 p_50 .plant_3.warehouse_1.road           .              .            +INF           73.7000      
 p_50 .plant_3.warehouse_1.rail           .              .            +INF           39.1500      
 p_50 .plant_3.warehouse_1.barge          .              .            +INF           12.3200      
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 14:56:38 Page 19
-'pvc model for ANOR journal'
-Solution Report     SOLVE supplychain Using LP From line 361
-
-
-     VAR VPFW  amount of product p (tons) shipped from plant f to warehouse w with transport mode t
-
-                                       LOWER          LEVEL          UPPER         MARGINAL
-
 p_50 .plant_3.warehouse_2.road           .              .            +INF           71.4400      
 p_50 .plant_3.warehouse_2.rail           .              .            +INF           30.2200      
-p_50 .plant_3.warehouse_2.barge          .              .            +INF      -1.13687E-13      
+p_50 .plant_3.warehouse_2.barge          .              .            +INF      1.136868E-13      
 p_75 .plant_1.warehouse_1.road           .              .            +INF           54.4000      
 p_75 .plant_1.warehouse_1.rail           .              .            +INF           20.0500      
-p_75 .plant_1.warehouse_1.barge          .         17342.0000        +INF             .          
+p_75 .plant_1.warehouse_1.barge          .              .            +INF      2.273737E-13      
 p_75 .plant_1.warehouse_2.road           .              .            +INF          104.7000      
 p_75 .plant_1.warehouse_2.rail           .              .            +INF           37.0000      
-p_75 .plant_1.warehouse_2.barge          .              .            +INF      1.136868E-13      
+p_75 .plant_1.warehouse_2.barge          .         43619.0000        +INF             .          
 p_75 .plant_2.warehouse_1.road           .              .            +INF           59.4300      
 p_75 .plant_2.warehouse_1.rail           .              .            +INF           21.7450      
-p_75 .plant_2.warehouse_1.barge          .              .            +INF            EPS         
+p_75 .plant_2.warehouse_1.barge          .         16223.0000        +INF             .          
 p_75 .plant_2.warehouse_2.road           .              .            +INF          109.7300      
 p_75 .plant_2.warehouse_2.rail           .              .            +INF           38.6950      
-p_75 .plant_2.warehouse_2.barge          .              .            +INF      2.273737E-13      
+p_75 .plant_2.warehouse_2.barge          .              .            +INF      -1.13687E-13      
 p_75 .plant_3.warehouse_1.road           .              .            +INF           73.7000      
 p_75 .plant_3.warehouse_1.rail           .              .            +INF           39.1500      
 p_75 .plant_3.warehouse_1.barge          .              .            +INF           12.3200      
 p_75 .plant_3.warehouse_2.road           .              .            +INF           71.4400      
 p_75 .plant_3.warehouse_2.rail           .              .            +INF           30.2200      
-p_75 .plant_3.warehouse_2.barge          .         42500.0000        +INF             .          
+p_75 .plant_3.warehouse_2.barge          .              .            +INF             .          
 p_110.plant_1.warehouse_1.road           .              .            +INF           54.4000      
 p_110.plant_1.warehouse_1.rail           .              .            +INF           20.0500      
 p_110.plant_1.warehouse_1.barge          .              .            +INF             .          
@@ -998,58 +1085,58 @@ p_110.plant_1.warehouse_2.rail           .              .            +INF       
 p_110.plant_1.warehouse_2.barge          .         24181.0000        +INF             .          
 p_110.plant_2.warehouse_1.road           .              .            +INF           59.4300      
 p_110.plant_2.warehouse_1.rail           .              .            +INF           21.7450      
-p_110.plant_2.warehouse_1.barge          .              .            +INF            EPS         
+p_110.plant_2.warehouse_1.barge          .              .            +INF      -2.27374E-13      
 p_110.plant_2.warehouse_2.road           .              .            +INF          109.7300      
 p_110.plant_2.warehouse_2.rail           .              .            +INF           38.6950      
-p_110.plant_2.warehouse_2.barge          .              .            +INF      1.136868E-13      
+p_110.plant_2.warehouse_2.barge          .              .            +INF      -1.13687E-13      
 p_110.plant_3.warehouse_1.road           .              .            +INF           73.7000      
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 23
+'pvc model for ANOR journal'
+Solution Report     SOLVE supplychain Using LP From line 370
+
+
+     VAR VPFW  amount of product p (tons) shipped from plant f to warehouse w with transport mode t
+
+                                       LOWER          LEVEL          UPPER         MARGINAL
+
 p_110.plant_3.warehouse_1.rail           .              .            +INF           39.1500      
 p_110.plant_3.warehouse_1.barge          .              .            +INF           12.3200      
 p_110.plant_3.warehouse_2.road           .              .            +INF           71.4400      
 p_110.plant_3.warehouse_2.rail           .              .            +INF           30.2200      
-p_110.plant_3.warehouse_2.barge          .              .            +INF      -1.13687E-13      
+p_110.plant_3.warehouse_2.barge          .              .            +INF            EPS         
 
 ---- VAR VPWC  amount of product p (tons) shipped from warehouse w  to customer c with transport mode t
 
                                           LOWER          LEVEL          UPPER         MARGINAL
 
-p_50 .warehouse_1.customer_1.road           .          6361.0000        +INF             .          
+p_50 .warehouse_1.customer_1.road           .         19680.0000        +INF             .          
 p_50 .warehouse_1.customer_1.rail           .              .            +INF           28.3500      
 p_50 .warehouse_1.customer_1.barge          .              .            +INF           56.7000      
-p_50 .warehouse_1.customer_2.road           .         25584.0000        +INF             .          
+p_50 .warehouse_1.customer_2.road           .         13384.0000        +INF             .          
 p_50 .warehouse_1.customer_2.rail           .              .            +INF           42.5250      
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 14:56:38 Page 20
-'pvc model for ANOR journal'
-Solution Report     SOLVE supplychain Using LP From line 361
-
-
-     VAR VPWC  amount of product p (tons) shipped from warehouse w  to customer c with transport mode t
-
-                                          LOWER          LEVEL          UPPER         MARGINAL
-
 p_50 .warehouse_1.customer_2.barge          .              .            +INF           85.0500      
-p_50 .warehouse_2.customer_1.road           .         13319.0000        +INF             .          
+p_50 .warehouse_2.customer_1.road           .              .            +INF      -1.13687E-13      
 p_50 .warehouse_2.customer_1.rail           .              .            +INF           31.1850      
 p_50 .warehouse_2.customer_1.barge          .              .            +INF           62.3700      
-p_50 .warehouse_2.customer_2.road           .              .            +INF      1.136868E-13      
+p_50 .warehouse_2.customer_2.road           .         12200.0000        +INF             .          
 p_50 .warehouse_2.customer_2.rail           .              .            +INF           52.0300      
 p_50 .warehouse_2.customer_2.barge          .              .            +INF           99.2800      
-p_75 .warehouse_1.customer_1.road           .              .            +INF      1.136868E-13      
+p_75 .warehouse_1.customer_1.road           .         16223.0000        +INF             .          
 p_75 .warehouse_1.customer_1.rail           .              .            +INF           28.3500      
 p_75 .warehouse_1.customer_1.barge          .              .            +INF           56.7000      
-p_75 .warehouse_1.customer_2.road           .         17342.0000        +INF             .          
+p_75 .warehouse_1.customer_2.road           .              .            +INF      -1.13687E-13      
 p_75 .warehouse_1.customer_2.rail           .              .            +INF           42.5250      
 p_75 .warehouse_1.customer_2.barge          .              .            +INF           85.0500      
-p_75 .warehouse_2.customer_1.road           .         34524.0000        +INF             .          
+p_75 .warehouse_2.customer_1.road           .         18301.0000        +INF             .          
 p_75 .warehouse_2.customer_1.rail           .              .            +INF           31.1850      
 p_75 .warehouse_2.customer_1.barge          .              .            +INF           62.3700      
-p_75 .warehouse_2.customer_2.road           .          7976.0000        +INF             .          
+p_75 .warehouse_2.customer_2.road           .         25318.0000        +INF             .          
 p_75 .warehouse_2.customer_2.rail           .              .            +INF           52.0300      
 p_75 .warehouse_2.customer_2.barge          .              .            +INF           99.2800      
-p_110.warehouse_1.customer_1.road           .              .            +INF            EPS         
+p_110.warehouse_1.customer_1.road           .              .            +INF      2.273737E-13      
 p_110.warehouse_1.customer_1.rail           .              .            +INF           28.3500      
 p_110.warehouse_1.customer_1.barge          .              .            +INF           56.7000      
-p_110.warehouse_1.customer_2.road           .              .            +INF      -1.13687E-13      
+p_110.warehouse_1.customer_2.road           .              .            +INF      1.136868E-13      
 p_110.warehouse_1.customer_2.rail           .              .            +INF           42.5250      
 p_110.warehouse_1.customer_2.barge          .              .            +INF           85.0500      
 p_110.warehouse_2.customer_1.road           .         14095.0000        +INF             .          
@@ -1058,31 +1145,31 @@ p_110.warehouse_2.customer_1.barge          .              .            +INF    
 p_110.warehouse_2.customer_2.road           .         10086.0000        +INF             .          
 p_110.warehouse_2.customer_2.rail           .              .            +INF           52.0300      
 p_110.warehouse_2.customer_2.barge          .              .            +INF           99.2800      
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 24
+'pvc model for ANOR journal'
+Solution Report     SOLVE supplychain Using LP From line 370
+
 
 ---- VAR VPS  amount of product p (tons) produced from plant f
 
                      LOWER          LEVEL          UPPER         MARGINAL
 
-p_50 .plant_1          .         45264.0000        +INF             .          
-p_50 .plant_2          .              .            +INF             .          
-p_50 .plant_3          .              .            +INF             .          
+p_50 .plant_1          .          7958.0000        +INF             .          
+p_50 .plant_2          .         37306.0000        +INF             .          
+p_50 .plant_3          .              .            +INF            EPS         
 p_75 .plant_1          .         59842.0000        +INF             .          
 p_75 .plant_2          .              .            +INF            EPS         
 p_75 .plant_3          .              .            +INF            EPS         
-p_110.plant_1          .         24181.0000        +INF             .          
-p_110.plant_2          .              .            +INF            EPS         
-p_110.plant_3          .              .            +INF            EPS         
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 14:56:38 Page 21
-'pvc model for ANOR journal'
-Solution Report     SOLVE supplychain Using LP From line 361
-
+p_110.plant_1          .              .            +INF            EPS         
+p_110.plant_2          .         24181.0000        +INF             .          
+p_110.plant_3          .              .            +INF             .          
 
                            LOWER          LEVEL          UPPER         MARGINAL
 
----- VAR z                 -INF      1.6027739E+9        +INF             .          
----- VAR sc                -INF      8.8121786E+7        +INF             .          
----- VAR pc                -INF      1.5146521E+9        +INF             .          
----- VAR pf                -INF      -1.820702E+8        +INF             .          
+---- VAR z                 -INF      1.6257154E+9        +INF             .          
+---- VAR sc                -INF      1.1073606E+8        +INF             .          
+---- VAR pc                -INF      1.5149793E+9        +INF             .          
+---- VAR pf                -INF      -1.823974E+8        +INF             .          
 ---- VAR icm               -INF      1.3325819E+9        +INF             .          
 
   z  overall costs
@@ -1095,29 +1182,100 @@ Solution Report     SOLVE supplychain Using LP From line 361
 **** REPORT SUMMARY :        0     NONOPT
                              0 INFEASIBLE
                              0  UNBOUNDED
-GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 14:56:38 Page 22
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 25
 'pvc model for ANOR journal'
 E x e c u t i o n
 
 
-----    363 VARIABLE pf.L                  =  -1.82070E+8  profit of plants
+----    372 VARIABLE pf.L                  =  -1.82397E+8  profit of plants
 
-----    364 VARIABLE pc.L                  =  1.514652E+9  cost of plants
+----    373 VARIABLE pc.L                  =  1.514979E+9  cost of plants
 
-----    365 VARIABLE sc.L                  =  8.812179E+7  cost of suppliers
+----    374 VARIABLE sc.L                  =  1.107361E+8  cost of suppliers
 
-----    366 VARIABLE VRP.L  amount of raw material (tons) purchased from supplier s in plant f
+----    375 VARIABLE VRP.L  amount of raw material (tons) purchased from supplier s in plant f
 
-                plant_1
+                plant_1     plant_2
 
-PVC-oil       90000.000
+PVC-oil        2161.429   87838.571
 PVC-calcium   94695.714
 
 
-----    367 VARIABLE icm.L                 =  1.332582E+9  income
+----    376 VARIABLE icm.L                 =  1.332582E+9  income
+
+----    377 VARIABLE VRSF.L  amount of raw material (tons) shipped from supplier s to  plant f with transport mode t
+
+                           rail
+
+PVC-oil    .plant_1    2161.429
+PVC-oil    .plant_2   87838.571
+PVC-calcium.plant_1   94695.714
 
 
-EXECUTION TIME       =        0.004 SECONDS      3 MB  24.9.2 r64480 DEX-DEG
+----    378 VARIABLE VPFW.L  amount of product p (tons) shipped from plant f to warehouse w with transport mode t
+
+INDEX 1 = p_50
+
+                          barge
+
+plant_2.warehouse_1   33064.000
+plant_2.warehouse_2   12200.000
+
+INDEX 1 = p_75
+
+                          barge
+
+plant_1.warehouse_2   43619.000
+plant_2.warehouse_1   16223.000
+
+INDEX 1 = p_110
+
+                          barge
+
+plant_1.warehouse_2   24181.000
+
+GAMS 24.9.2  r64480 Released Nov 14, 2017 DEX-DEG x86 64bit/Mac OS X                                                                                                                                                                  06/05/18 19:33:26 Page 26
+'pvc model for ANOR journal'
+E x e c u t i o n
+
+
+----    379 VARIABLE VPS.L  amount of product p (tons) produced from plant f
+
+          plant_1     plant_2
+
+p_50     7958.000   37306.000
+p_75    59842.000
+p_110               24181.000
+
+
+----    380 VARIABLE VPWC.L  amount of product p (tons) shipped from warehouse w  to customer c with transport mode t
+
+INDEX 1 = p_50
+
+                              road
+
+warehouse_1.customer_1   19680.000
+warehouse_1.customer_2   13384.000
+warehouse_2.customer_2   12200.000
+
+INDEX 1 = p_75
+
+                              road
+
+warehouse_1.customer_1   16223.000
+warehouse_2.customer_1   18301.000
+warehouse_2.customer_2   25318.000
+
+INDEX 1 = p_110
+
+                              road
+
+warehouse_2.customer_1   14095.000
+warehouse_2.customer_2   10086.000
+
+
+
+EXECUTION TIME       =        0.005 SECONDS      3 MB  24.9.2 r64480 DEX-DEG
 
 
 USER: Small MUD - 5 User License Generic             S160905:1044AO-GEN

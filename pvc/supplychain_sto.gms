@@ -23,7 +23,7 @@ Set
    ;
 
  
-Scalar cp       'carbon price (yuan),stohastic parameter, uniform distribution'   / 30 /
+Scalar cp       'carbon price (yuan),stohastic parameter, uniform distribution'   / 0 /
        lostper  '原材料生产成成品损耗系数，0.7代表 1吨原材能加工0.7吨成品'              / 0.7 /
     ;
 
@@ -260,7 +260,9 @@ VPS(p,f) 'amount of product p (tons) produced from plant f'
 
 *VWB(w) '1 if warehouse w is established, 0 otherwise'
 
-*;
+
+
+;
 
 variable
 
@@ -294,7 +296,7 @@ cost           'objective function'
 
 suppliercost   '供应商成本由  2 7 10 组成'
 
-plantcost      '工厂成本由   1  3 4 5 6 8 9 11 12 组成'
+plantcost      '工厂成本由   1  3 3a 4 5 6 8 9 11 12 组成'
 
 income         '销售收入'
 
@@ -302,9 +304,9 @@ profit         'profit of plants'
 
 row1(c,p)        '仓库运输到客户的产品量必须等于客户需求量 （假设Just in Time 库存模式）'
 
-row2(p,w)        '入库等于出库'
+row2(p,w)        '产品入库量等于出库到客户的数量'
 
-row3(p)          '产量大于需求量'
+row3(p)          '产量等于需求量'
 
 row4(f)          '对于所有工厂，原材料满足生产'
 
@@ -313,6 +315,13 @@ row5(s)          '供应商最大产能约束'
 row6(f)          '工厂产能约束'
 
 row7(w)          '仓库容量约束'
+
+row8(s,f)        '购买的原材料必须运到工厂'
+ 
+row9(f)          '运到工厂的等于运出到仓库的'
+
+
+
 ;
 
 
@@ -341,9 +350,9 @@ row1(c,p)..     dmcp(c,p) =e= sum((w,t),VPWC(p,w,c,t));
 
 row2(p,w)..    sum((c,t),VPWC(p,w,c,t)) =e= sum((f,t),VPFW(p,f,w,t));
 
-row3(p)..       sum(f, VPS(p,f)) =g= sum(c, dmcp(c,p));
+row3(p)..       sum(f, VPS(p,f)) =e= sum(c, dmcp(c,p));
 
-row4(f)..      sum(s,lostper*VRP(s,f)) =g= sum(p,VPS(p,f));
+row4(f) ..      sum(s,lostper*VRP(s,f)) =e= sum(p,VPS(p,f));
 
 row5(s)..       scap(s) =g= sum(f,VRP(s,f));
 
@@ -351,16 +360,24 @@ row6(f)..       fcap(f) =g= sum((p,w,t), VPFW(p,f,w,t));
 
 row7(w)..       wcap(w) =g= sum((p,f,t), VPFW(p,f,w,t));
 
+row8(s,f)..     VRP(s,f) =e= sum(t, VRSF(s,f,t));
+
+row9(f)..      sum(s,lostper*VRP(s,f)) =e= sum((p,w,t),VPFW(p,f,w,t));
+
 
 Model supplychain / ALL /;
+
+solve supplychain using LP minimizing z;
+
+
 
 
 *sample  cp 6 method2
 file emp / '%emp.info%'/; put emp '* problem %gams.i%' /;
 $onput
-randvar cp uniform 70 100
+randvar cp uniform 0 30
 stage 1 VRP 
-stage 2 cp cost suppliercost income plantcost row1 row2 row3 row4 row5 row6 row7 VRSF VPS VPFW VPWC
+stage 2 cp sc pc z profit pf icm cost suppliercost income plantcost row1 row2 row3 row4 row5 row6 row7 row8 row9 VRSF VPS VPFW VPWC
 $offput
 * Lindo can handle continuous distributions directly
 * For other EMPSP solvers cp need to be sampled aqead of time
