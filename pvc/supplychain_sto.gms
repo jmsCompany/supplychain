@@ -343,7 +343,7 @@ row2(p,w)..    sum((c,t),VPWC(p,w,c,t)) =e= sum((f,t),VPFW(p,f,w,t));
 
 row3(p)..       sum(f, VPS(p,f)) =g= sum(c, dmcp(c,p));
 
-row4(f) ..      sum(s,lostper*VRP(s,f)) =g= sum(p,VPS(p,f));
+row4(f)..      sum(s,lostper*VRP(s,f)) =g= sum(p,VPS(p,f));
 
 row5(s)..       scap(s) =g= sum(f,VRP(s,f));
 
@@ -358,8 +358,9 @@ Model supplychain / ALL /;
 *sample  cp 6 method2
 file emp / '%emp.info%'/; put emp '* problem %gams.i%' /;
 $onput
-randvar cp uniform 0 30
-stage 2 cp suppliercost plantcost cost income profit
+randvar cp uniform 70 100
+stage 1 VRP 
+stage 2 cp cost suppliercost income plantcost row1 row2 row3 row4 row5 row6 row7 VRSF VPS VPFW VPWC
 $offput
 * Lindo can handle continuous distributions directly
 * For other EMPSP solvers cp need to be sampled aqead of time
